@@ -1,6 +1,6 @@
-# Santander pipeline — tách từ notebook
+# Santander pipeline
 
-Tách `ban-lam-lai (1).ipynb` (61 cell) thành 5 stage độc lập, mỗi stage
+Tách `Santander_pipeline.ipynb` (61 cell) thành 5 stage độc lập, mỗi stage
 đọc/ghi artifact qua `artifacts/` để không phụ thuộc biến trong RAM của
 notebook — chạy lại 1 stage không cần chạy lại toàn bộ.
 
