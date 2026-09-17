@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Data & Pipeline Artifacts
+data/
+artifacts/
+pipeline/artifacts/*
+!pipeline/artifacts/.gitkeep
+*.csv
+*.parquet
+*.zip
+*.tar.gz
+*.npy
+*.pkl
+*.jsonl
+
+# Environment variables & secrets
+.env
+*.json
+!mcp_config.json
+!hooks.json
