@@ -54,6 +54,16 @@ BEST_PARAMS_JSON = os.path.join(ARTIFACT_DIR, "best_params.json")
 # ---- Stage 5: predict ----
 SUBMISSION_CSV = os.path.join(WORK_DIR, "sub.csv")
 
+# ---- Stage 6: evaluate ----
+X_VAL_NPY = os.path.join(ARTIFACT_DIR, "X_val.npy")
+Y_VAL_NPY = os.path.join(ARTIFACT_DIR, "y_val.npy")
+VAL_CUST_IDS_NPY = os.path.join(ARTIFACT_DIR, "val_cust_ids.npy")
+VAL_GROUND_TRUTH_JSON = os.path.join(ARTIFACT_DIR, "val_ground_truth.json")
+EVAL_METRICS_JSON = os.path.join(ARTIFACT_DIR, "eval_metrics.json")
+
+# Chiến lược validation: "customer_split" (80% train / 20% valid khách hàng tháng 6) hoặc "temporal" (train tháng 5, valid tháng 6)
+VAL_STRATEGY = os.environ.get("SANTANDER_VAL_STRATEGY", "customer_split").lower()
+
 # Ngày tham chiếu dùng trong feature engineering / predict — tách ra đây để không hardcode rải rác
 MONTH_TRAIN_LABEL = "2015-06-28"     # tháng dùng để xác định khách mua thêm sản phẩm (target)
 MONTH_PREV_LABEL = "2015-05-28"      # tháng liền trước, dùng để so sánh
@@ -61,3 +71,4 @@ LAG_TRAIN_CUTOFF = "2015-06-28"      # cutoff xây lag feature cho train
 LAG_TEST_START = "2016-01-28"        # cửa sổ lag feature cho test
 LAG_TEST_CUTOFF = "2016-06-28"
 PREDICT_REFERENCE_MONTH = "2016-05-28"  # tháng dùng để biết khách test đã sở hữu sản phẩm gì
+

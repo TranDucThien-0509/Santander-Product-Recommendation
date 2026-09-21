@@ -11,11 +11,16 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Data & Pipeline Artifacts
-data/
+data/*
+!data/raw/
+data/raw/*
+!data/raw/train_sample_10k.csv
+!data/raw/test_sample_5k.csv
 artifacts/
 pipeline/artifacts/*
 !pipeline/artifacts/.gitkeep
-*.csv
+sub.csv
+pipeline/sub.csv
 *.parquet
 *.zip
 *.tar.gz

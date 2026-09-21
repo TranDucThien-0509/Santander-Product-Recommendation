@@ -1,0 +1,17 @@
+.git
+.gitignore
+.venv
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Bắt buộc ignore data nặng để không làm phình build context (hơn 2.5GB)
+data/
+data/*
+
+# Không copy artifacts hay submission cũ vào container
+pipeline/artifacts/*
+pipeline/sub.csv
+sub.csv

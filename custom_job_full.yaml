@@ -1,0 +1,11 @@
+workerPoolSpecs:
+  - machineSpec:
+      machineType: e2-standard-8
+    replicaCount: 1
+    containerSpec:
+      imageUri: us-central1-docker.pkg.dev/santander-ds/santander-repo/santander-pipeline:latest
+      env:
+        - name: SANTANDER_INPUT_DIR
+          value: "/gcs/uit-thien-santander-ds/raw"
+        - name: SANTANDER_WORK_DIR
+          value: "/gcs/uit-thien-santander-ds/full_run"

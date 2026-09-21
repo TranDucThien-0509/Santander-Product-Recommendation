@@ -7,8 +7,14 @@ scipy>=1.14.0
 scikit-learn>=1.5.0
 pyarrow>=17.0.0
 
+# Machine learning & modeling
+xgboost>=2.0.0
+lightgbm>=4.0.0
+tqdm>=4.65.0
+
 # Cloud storage (used in src/ingest.py)
 google-cloud-storage>=2.18.0
 
 # Jupyter kernel
 ipykernel>=6.29.0
+

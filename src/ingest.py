@@ -25,22 +25,40 @@ from pathlib import Path
 import pandas as pd
 
 
-def download_from_gcs(bucket_name: str, blob_name: str, dest_path: str | Path,
+def _resolve_local_path(path_or_blob: str | Path | None) -> Path | None:
+    """Tìm đường dẫn file local tồn tại (hỗ trợ cả khi chạy ở root hoặc trong notebooks/)."""
+    if not path_or_blob:
+        return None
+    p = Path(path_or_blob)
+    candidates = [
+        p,
+        Path("..") / p,
+        Path("data") / p,
+        Path("..") / "data" / p,
+    ]
+    for c in candidates:
+        if c.exists() and c.is_file() and c.stat().st_size > 0:
+            return c
+    return None
+
+
+def download_from_gcs(bucket_name: str | None, blob_name: str, dest_path: str | Path,
                        project: str | None = None) -> Path:
     """Tải 1 file từ GCS bucket về local. Dùng Application Default Credentials
     (chạy `gcloud auth application-default login` trước nếu chưa login).
     Nếu file đã tồn tại và có dữ liệu thì tái sử dụng, không tải lại."""
     dest_path = Path(dest_path)
 
-    # Kiểm tra nếu file đã tồn tại ở dest_path hoặc ../dest_path (khi chạy từ thư mục con như notebooks/)
-    if dest_path.exists() and dest_path.stat().st_size > 0:
-        print(f"File đã có sẵn tại '{dest_path}' ({dest_path.stat().st_size / (1024**2):.1f} MB), bỏ qua tải lại.")
-        return dest_path
-    
-    alt_path = Path("..") / dest_path
-    if alt_path.exists() and alt_path.stat().st_size > 0:
-        print(f"File đã có sẵn tại '{alt_path}' ({alt_path.stat().st_size / (1024**2):.1f} MB), bỏ qua tải lại.")
-        return alt_path
+    local_file = _resolve_local_path(dest_path)
+    if local_file is not None:
+        print(f"[Ingest] File da co san tai '{local_file}' ({local_file.stat().st_size / (1024**2):.1f} MB), bo qua tai lai.")
+        return local_file
+
+    if not bucket_name or bucket_name == "TEN-BUCKET-CUA-BAN":
+        raise ValueError(
+            f"Khong tim thay file local tai '{dest_path}' va BUCKET_NAME chua duoc cau hinh hop le ('{bucket_name}'). "
+            "Vui long dat file vao thu muc data/ hoac cap nhat BUCKET_NAME that."
+        )
 
     from google.cloud import storage
 
@@ -53,17 +71,30 @@ def download_from_gcs(bucket_name: str, blob_name: str, dest_path: str | Path,
     return dest_path
 
 
-def peek_schema(bucket_name: str, blob_name: str, project: str | None = None,
-                 nrows: int = 10) -> pd.DataFrame:
-    """Đọc thử vài dòng đầu trực tiếp từ GCS (không tải cả file) — dùng để
-    kiểm tra schema trước khi đọc full, ví dụ so sánh cột train vs test."""
+def peek_schema(bucket_name: str | None, blob_name: str, project: str | None = None,
+                 nrows: int = 10, local_path: str | Path | None = None) -> pd.DataFrame:
+    """Đọc thử vài dòng đầu trực tiếp để kiểm tra schema.
+    Ưu tiên đọc file local nếu đã có sẵn trong data/ hoặc local_path.
+    Nếu chưa có ở local, mới kết nối tới GCS."""
+    target_path = local_path or blob_name
+    local_file = _resolve_local_path(target_path)
+    if local_file is not None:
+        print(f"[Ingest] Doc {nrows} dong thu nghiem tu file local: {local_file}")
+        return pd.read_csv(local_file, nrows=nrows, low_memory=False)
+
+    if not bucket_name or bucket_name == "TEN-BUCKET-CUA-BAN":
+        raise ValueError(
+            f"Khong tim thay file local cho '{blob_name}' va BUCKET_NAME chua duoc cau hinh hop le ('{bucket_name}'). "
+            "Vui long dat file vao data/ hoac cau hinh bucket GCS that."
+        )
+
     from google.cloud import storage
 
     client = storage.Client(project=project)
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
     with blob.open("rb") as f:
-        return pd.read_csv(f, nrows=nrows)
+        return pd.read_csv(f, nrows=nrows, low_memory=False)
 
 
 def load_raw(csv_path: str | Path, limit_rows: int | None = None,
@@ -71,10 +102,13 @@ def load_raw(csv_path: str | Path, limit_rows: int | None = None,
     """Đọc CSV với dtype cố định cho các cột hay bị suy sai kiểu (mixed type
     warning), sample bớt khách hàng nếu limit_people được set để tránh crash
     kernel trên máy yếu."""
+    local_file = _resolve_local_path(csv_path) or Path(csv_path)
+
     df = pd.read_csv(
-        csv_path,
+        local_file,
         dtype={"sexo": str, "ind_nuevo": str, "ult_fec_cli_1t": str, "indext": str},
         nrows=limit_rows,
+        low_memory=False,
     )
 
     if limit_people is not None:

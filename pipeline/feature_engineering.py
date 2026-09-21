@@ -169,40 +169,18 @@ def _get_lag_k(lag_list, k, n_lag_cols):
         return [0] * n_lag_cols
 
 
-def add_lag_features(df, df_test, train_total, X_train, y_train, train_cust_ids, X_test, test_cust_ids):
-    temp1 = df[(df["fecha_dato"] < config.LAG_TRAIN_CUTOFF) & (df["ncodpers"].isin(train_total["ncodpers"]))]
-    train_lags, n_lag_cols = _build_lag_dict(temp1, NON_LAG_COLS)
-
-    temp2 = df[
-        (df["fecha_dato"] < config.LAG_TEST_CUTOFF)
-        & (df["fecha_dato"] >= config.LAG_TEST_START)
-        & (df["ncodpers"].isin(df_test["ncodpers"]))
-    ]
-    test_lags, n_lag_cols_test = _build_lag_dict(temp2, NON_LAG_COLS)
-    assert n_lag_cols == n_lag_cols_test, "Số cột lag giữa train/test lệch nhau — kiểm tra lại NON_LAG_COLS"
-
-    for k, cust_id in enumerate(tqdm(train_cust_ids)):
-        l = train_lags.get(cust_id, [[0] * n_lag_cols])
+def _attach_lags(cust_ids, feature_rows, lags_dict, n_lag_cols):
+    """Gắn 5-month lag features vào danh sách feature vector theo từng khách hàng."""
+    result = []
+    for k, cust_id in enumerate(tqdm(cust_ids)):
+        l = lags_dict.get(cust_id, [[0] * n_lag_cols])
         lag_1 = _get_lag_k(l, 1, n_lag_cols)
         lag_2 = _get_lag_k(l, 2, n_lag_cols)
         lag_3 = _get_lag_k(l, 3, n_lag_cols)
         lag_4 = _get_lag_k(l, 4, n_lag_cols)
         lag_5 = _get_lag_k(l, 5, n_lag_cols)
-        X_train[k].extend(lag_1 + lag_5 + lag_4 + lag_3 + lag_2)
-    X_train = np.array(X_train)
-
-    X_test_new = []
-    for k, cust_id in enumerate(tqdm(test_cust_ids)):
-        l = test_lags.get(cust_id, [[0] * n_lag_cols])
-        lag_1 = _get_lag_k(l, 1, n_lag_cols)
-        lag_2 = _get_lag_k(l, 2, n_lag_cols)
-        lag_3 = _get_lag_k(l, 3, n_lag_cols)
-        lag_4 = _get_lag_k(l, 4, n_lag_cols)
-        lag_5 = _get_lag_k(l, 5, n_lag_cols)
-        X_test_new.append(np.array(X_test[k] + lag_1 + lag_5 + lag_4 + lag_3 + lag_2))
-    X_test = X_test_new
-
-    return X_train, y_train, X_test
+        result.append(np.array(feature_rows[k] + lag_1 + lag_5 + lag_4 + lag_3 + lag_2))
+    return np.array(result)
 
 
 def run():
@@ -214,9 +192,7 @@ def run():
         df, df_test = add_days_feature(df, df_test)
         df = add_behavior_lag_flags(df)
 
-        # Lưu lại df ở trạng thái này — predict.py cần để biết khách test đã sở hữu sản phẩm gì
-        # (dùng slice cột 'ind_cco_fin_ult1':'ind_recibo_ult1', các cột behavior lag mới thêm
-        # nằm ở cuối nên không ảnh hưởng tới slice này)
+        # Lưu lại df ở trạng thái này — predict.py & evaluate.py cần để mask sản phẩm đã sở hữu
         df.to_parquet(config.DF_WITH_BEHAVIOR_PARQUET, index=False)
 
         target_cols = get_target_cols(df)
@@ -224,32 +200,94 @@ def run():
             json.dump(list(target_cols), f)
 
         train_total, df_total = build_train_total(df, df_test, target_cols)
-        X_train, y_train, train_cust_ids, X_test, test_cust_ids = build_base_train_test(df_total)
 
-        X_train, y_train, X_test = add_lag_features(
-            df, df_test, train_total, X_train, y_train, train_cust_ids, X_test, test_cust_ids
-        )
+        # ---- TÁCH TẬP VALIDATION THEO KHÁCH HÀNG (Tránh Data Leakage) ----
+        unique_custs = train_total["ncodpers"].unique()
+        np.random.seed(42)
+        val_ratio = 0.2
+        if len(unique_custs) > 1:
+            n_val = min(len(unique_custs) - 1, max(1, int(len(unique_custs) * val_ratio)))
+            val_custs_set = set(np.random.choice(unique_custs, size=n_val, replace=False))
+            train_custs_set = set(unique_custs) - val_custs_set
+        else:
+            val_custs_set = set(unique_custs)
+            train_custs_set = set(unique_custs)
 
-        print("X_train shape:", X_train.shape)
-        print("y_train shape:", y_train.shape)
-        print("X_test length:", len(X_test))
+        # 1. Tập Train (80% khách hàng)
+        train_subset = train_total[train_total["ncodpers"].isin(train_custs_set)].copy()
+        y_train = train_subset["target"].astype(int)
+        train_cust_ids = train_subset["ncodpers"].values
+        X_train_base = train_subset.drop(columns=["target", "fecha_dato", "ncodpers"]).values.tolist()
+
+        # 2. Tập Validation (20% khách hàng đại diện để đo MAP@7)
+        val_subset = train_total[train_total["ncodpers"].isin(val_custs_set)].drop_duplicates(subset=["ncodpers"]).copy()
+        y_val = val_subset["target"].astype(int)
+        val_cust_ids = val_subset["ncodpers"].values
+        X_val_base = val_subset.drop(columns=["target", "fecha_dato", "ncodpers"]).values.tolist()
+
+        # 3. Ground Truth: Lưu danh sách sản phẩm thực tế khách đã mua mới tại tháng target
+        val_ground_truth = {}
+        for cust_id in val_custs_set:
+            targets = train_total[train_total["ncodpers"] == cust_id]["target"].tolist()
+            val_ground_truth[str(cust_id)] = [str(target_cols[idx]) for idx in targets]
+
+        with open(config.VAL_GROUND_TRUTH_JSON, "w") as f:
+            json.dump(val_ground_truth, f)
+
+        # 4. Tập Test (lấy từ df_total để đồng bộ đầy đủ các cột feature với train)
+        test_part = df_total[df_total["target"].isnull()].copy()
+        test_cust_ids = test_part["ncodpers"].values
+        test_feature_df = test_part.drop(columns=["target", "fecha_dato", "ncodpers"]).fillna(0)
+        X_test_base = test_feature_df.values.tolist()
+
+        # ---- XÂY DỰNG LAG FEATURES CHO TRAIN, VALID VÀ TEST ----
+        temp1 = df[(df["fecha_dato"] < config.LAG_TRAIN_CUTOFF) & (df["ncodpers"].isin(train_total["ncodpers"]))]
+        train_lags, n_lag_cols = _build_lag_dict(temp1, NON_LAG_COLS)
+
+        temp2 = df[
+            (df["fecha_dato"] < config.LAG_TEST_CUTOFF)
+            & (df["fecha_dato"] >= config.LAG_TEST_START)
+            & (df["ncodpers"].isin(df_test["ncodpers"]))
+        ]
+        test_lags, n_lag_cols_test = _build_lag_dict(temp2, NON_LAG_COLS)
+        assert n_lag_cols == n_lag_cols_test, "Số cột lag giữa train/test lệch nhau"
+
+        print("Đang gắn lag cho X_train...")
+        X_train = _attach_lags(train_cust_ids, X_train_base, train_lags, n_lag_cols)
+
+        print("Đang gắn lag cho X_val...")
+        X_val = _attach_lags(val_cust_ids, X_val_base, train_lags, n_lag_cols)
+
+        print("Đang gắn lag cho X_test...")
+        X_test = _attach_lags(test_cust_ids, X_test_base, test_lags, n_lag_cols_test)
+
+        print(f"X_train shape: {X_train.shape} | y_train shape: {y_train.shape}")
+        print(f"X_val shape:   {X_val.shape} | val_cust_ids: {len(val_cust_ids)}")
+        print(f"X_test shape:  {X_test.shape}")
 
         np.save(config.X_TRAIN_NPY, X_train)
         np.save(config.Y_TRAIN_NPY, y_train.to_numpy())
-        np.save(config.X_TEST_NPY, np.array(X_test))
-        np.save(config.TRAIN_CUST_IDS_NPY, train_cust_ids.to_numpy())
+        np.save(config.TRAIN_CUST_IDS_NPY, train_cust_ids)
+
+        np.save(config.X_VAL_NPY, X_val)
+        np.save(config.Y_VAL_NPY, y_val.to_numpy())
+        np.save(config.VAL_CUST_IDS_NPY, val_cust_ids)
+
+        np.save(config.X_TEST_NPY, X_test)
         np.save(config.TEST_CUST_IDS_NPY, test_cust_ids)
 
         print(f"Đã lưu toàn bộ artifact feature engineering vào {config.ARTIFACT_DIR}")
 
         t.log(
             n_target_cols=len(target_cols),
-            train_total_rows=train_total.shape[0],
+            n_train_rows=X_train.shape[0],
+            n_val_rows=X_val.shape[0],
+            n_test_rows=X_test.shape[0],
             X_train_shape=list(X_train.shape),
-            X_test_len=len(X_test),
             target_class_balance=y_train.value_counts(normalize=True).round(3).to_dict(),
         )
 
 
 if __name__ == "__main__":
     run()
+
