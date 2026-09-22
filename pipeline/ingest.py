@@ -127,6 +127,12 @@ def run():
         unzip_raw_files()
         df, df_test = load_raw_csv()
 
+        # Chuẩn hóa các cột object sang string để pyarrow không bị lỗi mixed-type (như cột age)
+        for col in df.select_dtypes(include=["object"]).columns:
+            df[col] = df[col].astype(str)
+        for col in df_test.select_dtypes(include=["object"]).columns:
+            df_test[col] = df_test[col].astype(str)
+
         df.to_parquet(config.RAW_TRAIN_PARQUET, index=False)
         df_test.to_parquet(config.RAW_TEST_PARQUET, index=False)
 
