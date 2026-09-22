@@ -31,28 +31,94 @@ def unzip_raw_files():
             print(f"Không tìm thấy file zip '{zip_path}', bỏ qua.")
 
 
+TOTAL_RAW_TRAIN_ROWS = 13_647_309
+
+
+def _find_file(filename):
+    """Tìm file theo thứ tự: SAMPLES_DIR -> INPUT_DIR -> WORK_DIR."""
+    candidates = [
+        os.path.join(config.SAMPLES_DIR, filename),
+        os.path.join(config.INPUT_DIR, filename),
+        os.path.join(config.WORK_DIR, filename),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    return None
+
+
 def load_raw_csv():
-    train_sample = os.path.join(config.INPUT_DIR, "train_sample_10k.csv")
-    test_sample = os.path.join(config.INPUT_DIR, "test_sample_5k.csv")
+    # 1. Chế độ Full Run
+    if not config.SAMPLE_ROWS:
+        train_csv = _find_file("train_ver2.csv")
+        test_csv = _find_file("test_ver2.csv")
+        if not train_csv or not test_csv:
+            raise FileNotFoundError(f"Không tìm thấy train_ver2.csv hoặc test_ver2.csv trong {config.INPUT_DIR}")
+        print(f"Chạy Full Dataset: đọc {train_csv} và {test_csv}...")
+        df = pd.read_csv(train_csv, low_memory=False)
+        df_test = pd.read_csv(test_csv, low_memory=False)
+        return df, df_test
 
-    if config.SAMPLE_ROWS and os.path.exists(train_sample):
-        train_csv = train_sample
-        test_csv = test_sample if os.path.exists(test_sample) else os.path.join(config.INPUT_DIR, "test_ver2.csv")
-    else:
-        train_csv = os.path.join(config.WORK_DIR, "train_ver2.csv")
-        if not os.path.exists(train_csv):
-            train_csv = os.path.join(config.INPUT_DIR, "train_ver2.csv")
+    sample_target = config.SAMPLE_ROWS
+    print(f"Chế độ lấy mẫu: mục tiêu ~{sample_target:,} dòng...")
 
-        test_csv = os.path.join(config.WORK_DIR, "test_ver2.csv")
-        if not os.path.exists(test_csv):
-            test_csv = os.path.join(config.INPUT_DIR, "test_ver2.csv")
+    # 2. Kiểm tra nếu có file sample nạp sẵn khớp với quy mô
+    if sample_target <= 10000:
+        sample_train = _find_file("train_sample_10k.csv")
+        sample_test = _find_file("test_sample_5k.csv")
+        if sample_train:
+            print(f"Sử dụng file sample 10k có sẵn: {sample_train}")
+            df = pd.read_csv(sample_train, nrows=sample_target, low_memory=False)
+            test_path = sample_test if sample_test else _find_file("test_ver2.csv")
+            df_test = pd.read_csv(test_path, nrows=min(sample_target, 5000), low_memory=False)
+            return df, df_test
 
-    print(f"Đang đọc train: {train_csv} (sample={config.SAMPLE_ROWS})...")
-    df = pd.read_csv(train_csv, nrows=config.SAMPLE_ROWS, low_memory=False)
+    if sample_target == 1000000:
+        sample_train = _find_file("train_sample_1m.csv")
+        sample_test = _find_file("test_sample_1m.csv")
+        if sample_train:
+            print(f"Sử dụng file sample 1M có sẵn: {sample_train}")
+            df = pd.read_csv(sample_train, low_memory=False)
+            test_path = sample_test if sample_test else _find_file("test_ver2.csv")
+            df_test = pd.read_csv(test_path, low_memory=False)
+            return df, df_test
 
-    test_nrows = min(config.SAMPLE_ROWS, 5000) if config.SAMPLE_ROWS else None
-    print(f"Đang đọc test: {test_csv} (sample={test_nrows})...")
-    df_test = pd.read_csv(test_csv, nrows=test_nrows, low_memory=False)
+    # 3. Lấy mẫu động (Dynamic Customer Modulo) bảo toàn chuỗi thời gian 17 tháng
+    train_csv = _find_file("train_ver2.csv")
+    test_csv = _find_file("test_ver2.csv")
+    if not train_csv or not test_csv:
+        raise FileNotFoundError(f"Không tìm thấy train_ver2.csv hoặc test_ver2.csv trong {config.INPUT_DIR}")
+
+    divisor = max(1, round(TOTAL_RAW_TRAIN_ROWS / sample_target))
+    print(f"Lấy mẫu động theo mã khách hàng: ncodpers % {divisor} == 0 (tỷ lệ 1/{divisor})...")
+
+    chunks = []
+    for chunk in pd.read_csv(train_csv, chunksize=500000, low_memory=False):
+        filtered = chunk[chunk["ncodpers"] % divisor == 0]
+        chunks.append(filtered)
+    df = pd.concat(chunks, ignore_index=True)
+
+    # Lấy mẫu test tương ứng theo cùng tỷ lệ khách hàng
+    df_test_full = pd.read_csv(test_csv, low_memory=False)
+    df_test = df_test_full[df_test_full["ncodpers"] % divisor == 0].reset_index(drop=True)
+    if len(df_test) == 0:
+        df_test = df_test_full.iloc[: min(len(df_test_full), max(1000, sample_target // 10))]
+
+    # Tự động lưu cache tập mẫu vào SAMPLES_DIR để các lần chạy sau tải tức thì
+    try:
+        os.makedirs(config.SAMPLES_DIR, exist_ok=True)
+        cache_name = "train_sample_1m.csv" if sample_target == 1000000 else f"train_sample_{sample_target}.csv"
+        cache_test_name = "test_sample_1m.csv" if sample_target == 1000000 else f"test_sample_{sample_target}.csv"
+        cache_train_path = os.path.join(config.SAMPLES_DIR, cache_name)
+        cache_test_path = os.path.join(config.SAMPLES_DIR, cache_test_name)
+        if not os.path.exists(cache_train_path):
+            df.to_csv(cache_train_path, index=False)
+            df_test.to_csv(cache_test_path, index=False)
+            print(f"Đã lưu cache tập mẫu -> {cache_train_path} ({len(df):,} dòng)")
+    except Exception as e:
+        print(f"Bỏ qua lưu cache tập mẫu ({e})")
+
+    print(f"Lấy mẫu hoàn tất: train={len(df):,} dòng ({df['ncodpers'].nunique():,} khách), test={len(df_test):,} dòng")
     return df, df_test
 
 

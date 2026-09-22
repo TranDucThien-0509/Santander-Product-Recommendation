@@ -16,7 +16,15 @@ _DEFAULT_WORK = _PIPELINE_DIR if os.path.exists(_LOCAL_RAW) else "/kaggle/workin
 INPUT_DIR = os.environ.get("SANTANDER_INPUT_DIR", _DEFAULT_INPUT)
 WORK_DIR = os.environ.get("SANTANDER_WORK_DIR", _DEFAULT_WORK)
 
-# Số dòng sample để test nhanh (vd: 10000), mặc định None = chạy full
+# Thư mục chứa tập mẫu (samples) — tách biệt hoàn toàn khỏi raw/ (bảo toàn tầng dữ liệu bất biến)
+_LOCAL_SAMPLES = os.path.join(_PROJECT_ROOT, "data", "samples")
+_DEFAULT_SAMPLES = _LOCAL_SAMPLES if os.path.exists(_LOCAL_SAMPLES) else os.path.join(INPUT_DIR, "..", "samples")
+SAMPLES_DIR = os.environ.get("SANTANDER_SAMPLES_DIR", _DEFAULT_SAMPLES)
+
+# Git commit SHA hoặc tag Docker image để truy vết mã nguồn trong log
+IMAGE_TAG = os.environ.get("SANTANDER_IMAGE_TAG", "local-dev")
+
+# Số dòng sample để test nhanh (vd: 10000, 1000000), mặc định None = chạy full
 _sample_env = os.environ.get("SANTANDER_SAMPLE_ROWS", "").strip()
 SAMPLE_ROWS = int(_sample_env) if _sample_env.isdigit() and int(_sample_env) > 0 else None
 
