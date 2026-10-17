@@ -33,3 +33,6 @@ pipeline/sub.csv
 *.json
 !mcp_config.json
 !hooks.json
+
+# Versioned, credential-free configuration template for event pipeline v2
+!experiments/event_pipeline_v2/configs/default.json

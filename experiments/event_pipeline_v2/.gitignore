@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+artifacts/
+data/
+runs/
+config.local.json
+.env
+*.parquet
+*.npy
+*.pkl
+*.zip
+
+.ruff_cache/
