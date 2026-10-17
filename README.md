@@ -8,6 +8,9 @@ từ thư mục v2 để chọn đúng package `pipeline`. Xem [mapping notebook
 [kiểm chứng tích hợp](experiments/event_pipeline_v2/docs/VALIDATION.md) và
 [benchmark mẫu theo khách hàng](experiments/event_pipeline_v2/docs/SAMPLE_BENCHMARK.md).
 Docker, dependencies và CI của v2 tách riêng khỏi pipeline sáu stage ở root.
+Đã chạy mẫu 10.000 khách và full 13.647.309 snapshot trên Vertex với cấu hình
+chọn từ validation; xem [bằng chứng cloud và metric](experiments/event_pipeline_v2/docs/CLOUD_RUNS.md).
+Đây là temporal development backtest trên các tháng đã dùng trong nghiên cứu.
 
 [![Santander ML Pipeline CI/CD](https://github.com/TranDucThien-0509/Santander-Product-Recommendation/actions/workflows/ci.yml/badge.svg)](https://github.com/TranDucThien-0509/Santander-Product-Recommendation/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.11-brightgreen?logo=python)](https://python.org)

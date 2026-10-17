@@ -19,6 +19,10 @@ Không bắt buộc có parquet RFM/CLV/persona cũ: bản này tự tính các 
 
 Xem [mapping notebook và phiên bản](docs/NOTEBOOK_FEATURE_MAPPING.md), [kiểm chứng](docs/VALIDATION.md) và [ablation trên mẫu 10.000 khách](docs/SAMPLE_BENCHMARK.md). RFM M dùng thang 0–100 và baseline fallback của notebook 01; persona dùng sáu rule đã xác nhận. CLV và affinity có phiên bản riêng.
 
+[Cloud sample và full đã thành công](docs/CLOUD_RUNS.md): full xử lý 13.647.309
+snapshot và xuất 931.453 forecast, không có vi phạm ownership. Flags full là
+baseline+CLV, chốt từ validation mẫu; test là temporal development backtest.
+
 ## 2. Chạy local
 
 Yêu cầu Python 3.11+.
@@ -47,6 +51,15 @@ OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 python -m pipeline.run_pipeline --confi
 ```
 
 Pipeline chạy ingest → feature theo tháng → train → validation/test → optional refit → forecast. In ra đường dẫn `COMPLETE` sau khi hoàn thành. Cache raw đã làm sạch dùng lại nếu file nguồn và phạm vi tháng không đổi. Nếu nguồn thay đổi, chọn `work_dir` mới hoặc bật `data.rebuild_cache`.
+
+PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:OMP_NUM_THREADS = '4'
+$env:OPENBLAS_NUM_THREADS = '4'
+python -m pipeline.run_pipeline --config configs/config.local.json
+```
 
 ## 3. Công tắc feature
 
@@ -118,7 +131,7 @@ Nếu có prediction roster: khách thiếu snapshot đủ tháng t được g�
 Re-score bằng artifact đáng tin cậy:
 
 ```bash
-python -m pipeline.score --config config.local.json \
+python -m pipeline.score --config configs/config.local.json \
   --model /absolute/run/all_features/forecast_model/model.pkl \
   --features /absolute/run/features --out /absolute/rescore
 ```

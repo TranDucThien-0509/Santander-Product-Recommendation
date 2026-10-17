@@ -1,5 +1,8 @@
 # Santander sample ablation
 
+Cloud replication and the validation-selected full run are recorded separately
+in [CLOUD_RUNS.md](CLOUD_RUNS.md), with their actual runtime versions and metrics.
+
 Measured on 18/10/2026 (Vietnam time); temporal development backtest.
 
 Fixed-ID sample: **10,000 customers, 143,126 snapshots**, all 17 months retained, SplitMix64 smallest hashes, seed 42. The sample is drawn across the full ID population, including late entrants.

@@ -57,6 +57,27 @@ Lệnh trên tạo job chạy thực tế. Theo dõi log để lấy dòng `COMP
 4. Tạo config full từ cấu hình đã khóa, đổi raw path về full CSV, work_dir thành prefix full mới, `ablation=false`. Giữ seed, split, sampling caps và model parameters; không cần chạy lại bảy ablations trên full ngay lần đầu.
 5. Tạo job full với cùng image digest, timeout hữu hạn. Chỉ ghi full verified sau khi job thành công và có completed.json cùng ownership/coverage audit. Các artifact customer-level/model tiếp tục ở GCS.
 
+Với full, có thể đặt `data.work_dir=/tmp/event-v2-full-IMAGE_TAG` trên SSD của
+worker để tránh đọc lặp cache/feature qua FUSE. Khi đó container command dùng
+Python launcher tương đương đoạn dưới để publish thư mục run hoàn chỉnh sau
+train. Cache thô ở SSD là tạm; artifact run được copy vào prefix full bền vững.
+Không coi file completed.json đang copy dở là bằng chứng job đã thành công:
+kiểm tra thêm `published.json` và trạng thái Vertex.
+GCS FUSE không giữ đầy đủ quyền và timestamp như POSIX; không dùng metadata đó
+để xác nhận tính toàn vẹn artifact. Xem [filesystem semantics chính thức](https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/semantics.md).
+
+```python
+from pathlib import Path
+import shutil
+from pipeline.common import load_config, write_json
+from pipeline.run_pipeline import run
+
+result = run(load_config('/gcs/YOUR_BUCKET/event-v2/IMAGE_TAG/configs/full.json'))
+destination = Path('/gcs/YOUR_BUCKET/event-v2/IMAGE_TAG/full/runs') / result.name
+shutil.copytree(result, destination)
+write_json(destination / 'published.json', {'status': 'success', 'source_run': result.name})
+```
+
 ```bash
 gcloud ai custom-jobs describe JOB_ID --project=PROJECT_ID --region=us-central1 --format=json
 gcloud ai custom-jobs stream-logs JOB_ID --project=PROJECT_ID --region=us-central1

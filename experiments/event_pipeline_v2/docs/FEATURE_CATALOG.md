@@ -38,7 +38,7 @@ correlated baseline or derived information may remain.
   returns are not verified acquisitions. Every acquired product creates a ranker
   label; nonbuyers remain in evaluation and CLV training.
 - Product missing stays missing; incomplete snapshots cannot verify ownership.
-- Age outside 0…110, negative/nonfinite renta/antiguedad and future fecha_alta
+- Age outside 0…110, negative/nonfinite renta/antiguedad and future-month fecha_alta
   become missing. Junior customers are retained.
 - Numeric median/indicators and categorical one-hot fit only on training rows.
   Unknown categories are ignored at scoring.
