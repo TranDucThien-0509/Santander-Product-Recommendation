@@ -12,3 +12,4 @@ config.local.json
 *.zip
 
 .ruff_cache/
+*.log

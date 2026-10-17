@@ -1,0 +1,9 @@
+**
+!Dockerfile
+!requirements.txt
+!pipeline/
+!pipeline/**
+!configs/
+!configs/default.json
+pipeline/**/__pycache__/
+pipeline/**/*.pyc

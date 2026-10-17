@@ -1,0 +1,47 @@
+name: Event pipeline v2
+on:
+  push:
+    paths:
+      - 'experiments/event_pipeline_v2/**'
+      - '.github/workflows/event-pipeline-v2.yml'
+  pull_request:
+    paths:
+      - 'experiments/event_pipeline_v2/**'
+      - '.github/workflows/event-pipeline-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: experiments/event_pipeline_v2
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: experiments/event_pipeline_v2/requirements.txt
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+  docker:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: experiments/event_pipeline_v2
+          file: experiments/event_pipeline_v2/Dockerfile
+          push: false
+          tags: santander-event:${{ github.sha }}
+          cache-from: type=gha,scope=event-v2
+          cache-to: type=gha,mode=max,scope=event-v2

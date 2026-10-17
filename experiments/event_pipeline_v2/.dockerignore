@@ -8,3 +8,8 @@ __pycache__
 data
 artifacts
 runs
+config.local.json
+configs/config.local.json
+.env
+**/.env
+model*
