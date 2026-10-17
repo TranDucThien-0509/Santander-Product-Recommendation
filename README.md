@@ -1,5 +1,14 @@
 # Santander Product Recommendation — Pipeline MLOps trên GCP
 
+## Configurable event pipeline v2
+
+Pipeline thử nghiệm tại [`experiments/event_pipeline_v2/`](experiments/event_pipeline_v2/README.md)
+cho phép bật/tắt RFM, CLV-proxy, persona, lifecycle và affinity. Chạy lệnh Python
+từ thư mục v2 để chọn đúng package `pipeline`. Xem [mapping notebook và availability](experiments/event_pipeline_v2/docs/NOTEBOOK_FEATURE_MAPPING.md),
+[kiểm chứng tích hợp](experiments/event_pipeline_v2/docs/VALIDATION.md) và
+[benchmark mẫu theo khách hàng](experiments/event_pipeline_v2/docs/SAMPLE_BENCHMARK.md).
+Docker, dependencies và CI của v2 tách riêng khỏi pipeline sáu stage ở root.
+
 [![Santander ML Pipeline CI/CD](https://github.com/TranDucThien-0509/Santander-Product-Recommendation/actions/workflows/ci.yml/badge.svg)](https://github.com/TranDucThien-0509/Santander-Product-Recommendation/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.11-brightgreen?logo=python)](https://python.org)
 

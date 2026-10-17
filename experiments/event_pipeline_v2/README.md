@@ -1,6 +1,6 @@
 # Santander — configurable acquisition-event pipeline
 
-Pipeline riêng để dự đoán **sản phẩm mở thêm ở tháng t+1**, dùng thông tin đã quan sát đến hết tháng t. Giữ cách train trên record có acquisition của project gốc, thêm config bật/tắt RFM, CLV-proxy, persona, lifecycle và affinity. Không thay thế hoặc sửa trực tiếp repository gốc.
+Pipeline thử nghiệm riêng trong `experiments/event_pipeline_v2/` để dự đoán **sản phẩm mở thêm ở tháng t+1**, dùng thông tin đã quan sát đến hết tháng t. Thêm config bật/tắt RFM, CLV-proxy, persona, lifecycle và affinity. Chạy mọi lệnh bên dưới từ thư mục v2 để chọn đúng package `pipeline`.
 
 Tham chiếu cấu trúc project: https://github.com/TranDucThien-0509/Santander-Product-Recommendation, commit được đọc `5e791bda2958fa395f69d342aeaa83a28ad78bcb`.
 
@@ -17,6 +17,8 @@ Tùy chọn: `test_ver2.csv` hoặc ZIP chứa file này, dùng **cột ID** là
 
 Không bắt buộc có parquet RFM/CLV/persona cũ: bản này tự tính các nhóm theo thời điểm. Đây là định nghĩa proxy mới có ghi rõ trong [feature catalog](docs/FEATURE_CATALOG.md); không mặc định tái tạo kết quả các notebook cũ.
 
+Xem [mapping notebook và phiên bản](docs/NOTEBOOK_FEATURE_MAPPING.md), [kiểm chứng](docs/VALIDATION.md) và [ablation trên mẫu 10.000 khách](docs/SAMPLE_BENCHMARK.md). RFM M dùng thang 0–100 và baseline fallback của notebook 01; persona dùng sáu rule đã xác nhận. CLV và affinity có phiên bản riêng.
+
 ## 2. Chạy local
 
 Yêu cầu Python 3.11+.
@@ -25,10 +27,10 @@ Yêu cầu Python 3.11+.
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp configs/default.json config.local.json
+cp configs/default.json configs/config.local.json
 ```
 
-Sửa ba trường trong `config.local.json`:
+Sửa ba trường trong `configs/config.local.json`:
 
 ```json
 {
@@ -41,7 +43,7 @@ Sửa ba trường trong `config.local.json`:
 Ba trường trên nằm trong object `data`, không phải ở top-level. Các phần khác giữ cấu trúc của file mẫu.
 
 ```bash
-OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 python -m pipeline.run_pipeline --config config.local.json
+OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 python -m pipeline.run_pipeline --config configs/config.local.json
 ```
 
 Pipeline chạy ingest → feature theo tháng → train → validation/test → optional refit → forecast. In ra đường dẫn `COMPLETE` sau khi hoàn thành. Cache raw đã làm sạch dùng lại nếu file nguồn và phạm vi tháng không đổi. Nếu nguồn thay đổi, chọn `work_dir` mới hoặc bật `data.rebuild_cache`.
@@ -100,6 +102,8 @@ Mỗi run có thư mục riêng với thời gian và hash config. Model, metric
 
 - `config.resolved.json`, `input_manifest.json`, `environment.json`, `point_in_time_audit.json`.
 - `features/YYYY-MM.parquet`: snapshot feature, gồm cả cột trung gian phục vụ kiểm tra.
+- `lifecycle/YYYY-MM.parquet`: mọi khách đã biết đến tháng đó, kể cả At-risk/Churned đang vắng.
+- `feature_build_resources.json`: thời gian và peak process RSS đo mỗi 0,1 giây; từng variant có resource metrics riêng.
 - `evaluation_model/model.pkl` và `feature_manifest.json`: model fit trên train để chấm validation/test.
 - `validation_metrics.json`, `test_metrics.json`: aggregate và chi tiết theo tháng, cohort coverage.
 - `forecast_model/`: model refit trên train+validation+test nếu `refit_for_forecast=true`; chỉ dùng cho forecast. Điểm test vẫn của evaluation model.
@@ -129,6 +133,6 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python -m unittest discover -s tests -v
 
 Test tự tạo dữ liệu giả; không tải hay commit dữ liệu Kaggle. Có test XGBoost, pipeline end-to-end, mốc thời gian, mask ownership, cohort missing và flags.
 
-Xem [hướng dẫn GCP](docs/GCP.md), `Dockerfile`, `configs/vertex_job.yaml`. Chưa thực thi job GCP hoặc benchmark full Santander trong lần bàn giao này. Raw ingest đọc theo chunk nhưng bước tổng hợp/feature vẫn nạp một tháng vào RAM; không phải pipeline hoàn toàn out-of-core. Giới hạn event rows và CLV rows có config; scoring encoding chia batch 20.000 dòng.
+Xem [hướng dẫn GCP](docs/GCP.md), `Dockerfile`, `configs/vertex_job.yaml` và [trạng thái kiểm chứng](docs/VALIDATION.md). Raw ingest đọc theo chunk nhưng bước tổng hợp/feature vẫn nạp một tháng vào RAM; không phải pipeline hoàn toàn out-of-core. Giới hạn event rows và CLV rows có config; scoring encoding chia batch 20.000 dòng.
 
-Để đưa lên repo hiện có, có thể chép toàn bộ thư mục này vào `experiments/event_pipeline_v2/`, chạy lệnh từ thư mục đó. Workflow `.github/workflows/tests.yml` dành cho repo độc lập; nếu ghép vào repo cũ cần đặt workflow ở root và sửa `working-directory`, `cache-dependency-path` theo thư mục con. Không commit raw data, cache, model pickle hoặc credentials.
+Workflow v2 nằm tại root `.github/workflows/event-pipeline-v2.yml`, cài requirements và chạy synthetic tests từ thư mục v2, sau đó build Docker và kiểm tra import trong container. Workflow CI/CD cũ được giữ riêng. Không commit raw data, cache, model pickle hoặc credentials.

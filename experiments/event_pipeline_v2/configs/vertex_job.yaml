@@ -1,5 +1,8 @@
 # CustomJobSpec for gcloud ai custom-jobs create --config.
 # Replace PROJECT_ID, REPOSITORY and IMAGE_TAG; use the same region as the image.
+scheduling:
+  timeout: 7200s
+  restartJobOnWorkerRestart: false
 workerPoolSpecs:
   - machineSpec:
       machineType: n1-standard-8

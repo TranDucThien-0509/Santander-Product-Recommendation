@@ -1,4 +1,8 @@
-# Kết quả kiểm tra bản bàn giao
+# Kết quả kiểm tra bản bàn giao gốc (trước tích hợp)
+
+**Lịch sử:** phần dưới ghi kết quả 5 test của bản ZIP ban đầu. Kết quả tích hợp mới
+và 13 test nằm tại [VALIDATION.md](VALIDATION.md); không dùng số cột hoặc trạng
+thái Docker/GCP trong bản ghi lịch sử này làm trạng thái hiện tại.
 
 Ngày kiểm tra: 2026-10-17. Dữ liệu **mô phỏng**, tối đa 160 khách và 9 tháng (2020-01 đến 2020-09). Không dùng kết quả này làm benchmark Santander.
 

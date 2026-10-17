@@ -1,6 +1,6 @@
 # Chạy container trên GCP
 
-Đây là mẫu triển khai để bạn tự chạy sau khi điền project/bucket và cấp quyền. Trong lần bàn giao chỉ chạy test local trên dữ liệu mô phỏng; chưa build/push image, tạo job hoặc tiêu thụ tài nguyên GCP.
+Runbook cho image v2 riêng. Xem [VALIDATION.md](VALIDATION.md) để biết build/job nào đã thực sự hoàn tất; cấu hình trong Git dùng placeholder, cấu hình chạy thật nằm ngoài Git.
 
 ## Chuẩn bị
 
@@ -12,7 +12,7 @@ Tài liệu chính thức: [Cloud Storage mount trong custom training](https://c
 
 ## Cấu hình và build
 
-Sửa `configs/default.json`, rồi upload thành `gs://YOUR_BUCKET/configs/event-v2.json`. Đặc biệt điền `data.train_csv_or_zip`, `data.work_dir`, optional roster; giữ raw/config/output ở các prefix khác nhau. Work dir phải có đủ dung lượng; không cho hai job chạy đồng thời vào cùng cache hoặc bật rebuild cùng lúc.
+Copy `configs/default.json` thành `configs/config.local.json`, sửa bản local rồi upload vào prefix mới, ví dụ `gs://YOUR_BUCKET/event-v2/IMAGE_TAG/configs/sample.json`. Điền `data.train_csv_or_zip`, `data.work_dir`, optional roster; giữ raw/config/output riêng. Work dir phải có đủ dung lượng; mỗi sample/full/attempt dùng prefix mới, không cho hai job dùng chung cache hoặc bật rebuild cùng lúc.
 
 Ví dụ build **sau khi thay toàn bộ placeholder**:
 
@@ -20,10 +20,21 @@ Ví dụ build **sau khi thay toàn bộ placeholder**:
 docker build -t us-central1-docker.pkg.dev/PROJECT_ID/REPOSITORY/santander-event:IMAGE_TAG .
 gcloud auth configure-docker us-central1-docker.pkg.dev
 docker push us-central1-docker.pkg.dev/PROJECT_ID/REPOSITORY/santander-event:IMAGE_TAG
-gcloud storage cp configs/default.json gs://YOUR_BUCKET/configs/event-v2.json
+gcloud storage cp configs/config.local.json gs://YOUR_BUCKET/event-v2/IMAGE_TAG/configs/sample.json
 ```
 
-Sửa image URI và config path trong `configs/vertex_job.yaml` cho khớp. Mẫu dùng 1 CPU worker, `n1-standard-8`, disk 200 GB. Đây là điểm bắt đầu để đo tài nguyên, không phải cấu hình đã benchmark trên full Santander. CSV đọc theo chunk nhưng mỗi tháng và training matrix vẫn vào RAM; giảm caps hoặc tăng RAM nếu profiling cho thấy cần.
+Sửa image URI và config path trong bản local của `configs/vertex_job.yaml`. Mẫu dùng 1 CPU worker, `n1-standard-8`, disk 200 GB và timeout 7.200 giây; sample dùng timeout 1.800 giây. Ghim digest `.../santander-event@sha256:...` sau khi publish để job không chạy image bị đổi tag. CSV đọc theo chunk nhưng mỗi tháng và training matrix vẫn vào RAM; đo `feature_build_resources.json` và `comparison.json` trên sample trước khi chạy full.
+
+Nếu Docker Desktop chưa chạy, có thể build/publish bằng Cloud Build:
+
+```bash
+gcloud meta list-files-for-upload
+gcloud builds submit . --project=PROJECT_ID \
+  --tag=us-central1-docker.pkg.dev/PROJECT_ID/REPOSITORY/santander-event:IMAGE_TAG \
+  --timeout=1200s --async
+```
+
+`.gcloudignore` chỉ cho phép source Python, requirements, Dockerfile và default config. Kiểm tra danh sách upload trước mỗi build. Docker chỉ COPY default config; không copy config local hoặc credential vào image.
 
 ## Gửi job
 
@@ -37,6 +48,22 @@ gcloud ai custom-jobs create \
 ```
 
 Lệnh trên tạo job chạy thực tế. Theo dõi log để lấy dòng `COMPLETE`; output nằm dưới `work_dir/runs/...` tương ứng object trong bucket. Dùng `completed.json` để phân biệt run hoàn tất với run có thư mục nhưng đã lỗi.
+
+## Trình tự sample → full
+
+1. Chạy `pipeline.sample` trên raw để lấy 10.000 customer ID cố định, giữ mọi tháng; upload sample và manifest vào prefix raw riêng. Không dùng sample 10k dòng cũ của pipeline root vì thiếu các tháng test.
+2. Chạy sample với cả bảy ablation variants; kiểm tra state `JOB_STATE_SUCCEEDED`, `completed.json`, cohort, forecast audit và measured RSS.
+3. Khóa flags theo validation, không dùng test để chọn. Thử nghiệm local chọn baseline+CLV; mọi điểm test vẫn từ evaluation_model trước refit.
+4. Tạo config full từ cấu hình đã khóa, đổi raw path về full CSV, work_dir thành prefix full mới, `ablation=false`. Giữ seed, split, sampling caps và model parameters; không cần chạy lại bảy ablations trên full ngay lần đầu.
+5. Tạo job full với cùng image digest, timeout hữu hạn. Chỉ ghi full verified sau khi job thành công và có completed.json cùng ownership/coverage audit. Các artifact customer-level/model tiếp tục ở GCS.
+
+```bash
+gcloud ai custom-jobs describe JOB_ID --project=PROJECT_ID --region=us-central1 --format=json
+gcloud ai custom-jobs stream-logs JOB_ID --project=PROJECT_ID --region=us-central1
+gcloud storage ls 'gs://YOUR_BUCKET/event-v2/IMAGE_TAG/full/runs/*/completed.json'
+```
+
+Nếu cần dừng job đang chạy, dùng `gcloud ai custom-jobs cancel JOB_ID --project=PROJECT_ID --region=us-central1`. Không xóa raw hoặc prefix của job khác để sửa một lần chạy lỗi.
 
 Không trộn điểm validation/test với điểm của model refit. Muốn so sánh group: bật `run.ablation` trong JSON trước khi upload; số lần train tăng nên thời gian và tài nguyên tăng.
 
