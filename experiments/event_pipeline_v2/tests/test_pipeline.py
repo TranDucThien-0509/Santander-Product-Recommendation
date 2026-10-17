@@ -67,6 +67,8 @@ def fixture(folder, backend="hist_gradient_boosting"):
         clv_min_train_rows=10,
         clv_min_history_origin="2020-02",
         persona_rules_available_from="2020-01",
+        persona_rules_fit_origin="2019-11",
+        persona_rules_label_month="2019-12",
         affinity_prior=10.0,
     )
     c["model"].update(
@@ -116,6 +118,8 @@ class PipelineTests(unittest.TestCase):
                 "F_event_months": [0, 0, 2],
                 "n_products": [2, 3, 5],
                 "observed_pairs": [5, 0, 5],
+                "product_complete": [1, 1, 1],
+                "R": [np.nan, np.nan, 1.0],
             }
         )
         ids, missing = persona(q, True)

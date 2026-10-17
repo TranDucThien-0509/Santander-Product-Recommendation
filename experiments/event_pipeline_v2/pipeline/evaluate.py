@@ -6,6 +6,9 @@ from .train import predict_scores, ranked_products
 
 
 def metrics(y, ranks):
+    require(len(y) == len(ranks), "One ranking is required for each label row")
+    require(all(len(r) <= 7 and len(set(r)) == len(r) for r in ranks),
+            "Rankings must contain at most seven distinct products")
     ap = []
     recall = []
     buyers = y.any(axis=1)
@@ -30,6 +33,7 @@ def metrics(y, ranks):
         map_at_7_all=float(ap.mean()) if n else None,
         map_at_7_buyers=float(ap[buyers].mean()) if b else None,
         recall_at_7_buyers=float(np.mean(recall)) if b else None,
+        recommendation_coverage=sum(bool(r) for r in ranks) / n if n else None,
     )
 
 
@@ -50,7 +54,8 @@ def evaluate(package, cache, feature_dir, origins, out):
         all_y.append(y)
         all_ranks.extend(ranks)
     result = dict(
-        aggregate=metrics(np.concatenate(all_y), all_ranks), by_origin=reports
+        aggregate=metrics(np.concatenate(all_y), all_ranks), by_origin=reports,
+        evaluation_scope="temporal development backtest",
     )
     write_json(out, result)
     return result

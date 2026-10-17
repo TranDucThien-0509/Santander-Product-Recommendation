@@ -3,7 +3,8 @@
 import argparse, copy, datetime, json, platform, re
 from pathlib import Path
 import importlib.metadata
-from .common import load_config, config_hash, require, write_json, GROUPS
+from .common import load_config, validate_config, config_hash, require, write_json, GROUPS
+from .profiling import Profile
 from .ingest import ingest
 from .features import build_features
 from .train import train
@@ -12,6 +13,7 @@ from .predict import forecast
 
 
 def run(c):
+    validate_config(c)
     require(
         bool(re.fullmatch(r"[A-Za-z0-9_-]+", c["run"]["name"])),
         "run.name must be a simple directory name",
@@ -26,7 +28,7 @@ def run(c):
     write_json(root / "config.resolved.json", c)
     versions = {
         p: importlib.metadata.version(p)
-        for p in ["numpy", "pandas", "pyarrow", "scikit-learn"]
+        for p in ["numpy", "pandas", "pyarrow", "scikit-learn", "psutil"]
     }
     versions["python"] = platform.python_version()
     if c["model"]["backend"] == "xgboost":
@@ -37,7 +39,9 @@ def run(c):
     write_json(
         root / "input_manifest.json", json.loads((cache / "manifest.json").read_text())
     )
-    feature_dir = build_features(cache, c, root)
+    with Profile() as feature_profile:
+        feature_dir = build_features(cache, c, root)
+    write_json(root / "feature_build_resources.json", feature_profile.result)
     variants = [(c["run"]["name"], c["feature_groups"])]
     if c["run"]["ablation"]:
         variants = [("baseline", {k: False for k in GROUPS})]
@@ -50,40 +54,29 @@ def run(c):
             variants.append(("all_enabled", c["feature_groups"]))
     results = []
     for name, flags in variants:
-        cc = copy.deepcopy(c)
-        cc["feature_groups"] = flags
-        folder = root / name
-        folder.mkdir()
-        print(f"train {name}", flush=True)
-        package = train(
-            cache,
-            feature_dir,
-            c["split"]["train_origins"],
-            cc,
-            folder / "evaluation_model",
-        )
-        val = evaluate(
-            package,
-            cache,
-            feature_dir,
-            c["split"]["validation_origins"],
-            folder / "validation_metrics.json",
-        )
-        test = evaluate(
-            package,
-            cache,
-            feature_dir,
-            c["split"]["test_origins"],
-            folder / "test_metrics.json",
-        )
-        results.append(
-            dict(
-                variant=name,
-                feature_groups=flags,
-                validation=val["aggregate"],
-                test=test["aggregate"],
+        with Profile() as profile:
+            cc = copy.deepcopy(c)
+            cc["feature_groups"] = flags
+            folder = root / name
+            folder.mkdir()
+            print(f"train {name}", flush=True)
+            package = train(
+                cache, feature_dir, c["split"]["train_origins"], cc,
+                folder / "evaluation_model",
             )
-        )
+            val = evaluate(
+                package, cache, feature_dir, c["split"]["validation_origins"],
+                folder / "validation_metrics.json",
+            )
+            test = evaluate(
+                package, cache, feature_dir, c["split"]["test_origins"],
+                folder / "test_metrics.json",
+            )
+            results.append(
+                dict(variant=name, feature_groups=flags,
+                     validation=val["aggregate"], test=test["aggregate"])
+            )
+        results[-1]["resources"] = profile.result
         if not c["run"]["ablation"] or name == variants[-1][0]:
             # Test scores above always belong to the model fit only on train origins.
             # Refit is only for a final forecast after all evaluation outcomes are known.

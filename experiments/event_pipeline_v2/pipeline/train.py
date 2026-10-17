@@ -7,7 +7,8 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import HistGradientBoostingClassifier
-from .common import PRODUCTS, features_for, require, write_json
+from .common import (PRODUCTS, features_for, require, write_json, shift,
+                     FEATURE_VERSIONS, GROUP_DEPENDENCIES)
 from .features import pair
 
 
@@ -28,6 +29,7 @@ def event_training_data(cache, feature_dir, origins, c):
             chosen = rng.choice(len(row), max(1, cap // len(origins)), replace=False)
             row = row[chosen]
             col = col[chosen]
+        info["event_rows_used"] = len(row)
         q = pd.read_parquet(feature_dir / f"{origin}.parquet").set_index("customer_id")
         frames.append(q.loc[ids[row], nums + cats])
         targets.append(col)
@@ -123,6 +125,14 @@ def train(cache, feature_dir, origins, c, out):
             product_classes_observed=[PRODUCTS[int(i)] for i in classes],
             origins=origins,
             fit_audit=audit,
+            max_label_month=shift(max(origins), 1),
+            product_order=PRODUCTS,
+            feature_versions={k: FEATURE_VERSIONS[k] for k, on in c["feature_groups"].items() if on},
+            dependencies={k: GROUP_DEPENDENCIES[k] for k, on in c["feature_groups"].items() if on},
+            persona_provenance={k: c["meta_models"][k] for k in
+                ["persona_rules_fit_origin", "persona_rules_label_month", "persona_rules_available_from"]}
+                if c["feature_groups"]["persona"] else None,
+            evaluation_scope="temporal development backtest; notebook research used these months",
             persona_method="fixed_rules_v1_not_a_newly_trained_tree",
         ),
     )

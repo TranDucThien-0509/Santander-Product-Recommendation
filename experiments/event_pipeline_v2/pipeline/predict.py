@@ -14,6 +14,9 @@ def forecast(package, cache, feature_dir, c, out):
     # Score eligible current customers regardless of whether next month's event occurs.
     scores = predict_scores(package, q)
     ranks = ranked_products(scores, q[PRODUCTS].to_numpy())
+    own = q[PRODUCTS].to_numpy()
+    violations = sum(int(own[i, j] != 0) for i, ranking in enumerate(ranks) for j in ranking)
+    require(violations == 0, "Ownership mask violated")
     result = pd.DataFrame(
         {
             "ncodpers": q.index,
@@ -50,4 +53,6 @@ def forecast(package, cache, feature_dir, c, out):
     return dict(
         n_predictions=len(result),
         n_fallback=int(result.status.ne("current_complete_snapshot").sum()),
+        ownership_violations=violations,
+        ownership_verified_predictions=int(result.status.eq("current_complete_snapshot").sum()),
     )
