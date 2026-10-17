@@ -26,6 +26,8 @@
     "clv_min_train_rows": 1000,
     "clv_min_history_origin": "2015-03",
     "persona_rules_available_from": "2015-12",
+    "persona_rules_fit_origin": "2015-11",
+    "persona_rules_label_month": "2015-12",
     "affinity_window_months": 3,
     "affinity_prior": 1000.0
   },

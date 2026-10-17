@@ -1,5 +1,5 @@
 from pathlib import Path
-import hashlib, json
+import hashlib, json, math, re
 import pandas as pd
 
 PRODUCTS = [
@@ -41,13 +41,29 @@ BASE_NUM = [
 ] + PRODUCTS
 GROUPS = {
     "rfm": (
-        ["R", "F_event_months", "M_group_points", "rfm_no_event", "rfm_m_missing"],
+        ["R", "F_event_months", "M_group_points", "M_group_history_n",
+         "M_group_uses_baseline", "rfm_no_event", "rfm_m_missing"],
         [],
     ),
-    "clv": (["clv_expected_acquisitions_1m", "clv_unavailable"], []),
+    "clv": (["predicted_acquisitions_1m", "clv_unavailable"], []),
     "persona": (["persona_unavailable"], ["persona_id"]),
-    "lifecycle": (["missing_months"], ["lifecycle"]),
+    "lifecycle": (["missing_months", "absence_before_return"], ["lifecycle"]),
     "affinity": (["affinity_" + p for p in PRODUCTS], []),
+}
+
+FEATURE_VERSIONS = {
+    "rfm": "notebook01-group-points-baseline-v2",
+    "persona": "notebook10-tree6-nov2015-fixed-rules-v1",
+    "lifecycle": "lifecycle-v3-presence-gap6",
+    "clv": "baseline-numeric-poisson-1m-v1",
+    "affinity": "temporal-ownership-smoothed-24-v1",
+}
+GROUP_DEPENDENCIES = {
+    "rfm": ["observed consecutive complete product pairs"],
+    "persona": ["F_event_months", "n_products", "R eligibility", "observed_pairs"],
+    "lifecycle": ["snapshot presence", "fecha_alta", "past panel gaps"],
+    "clv": list(BASE_NUM),
+    "affinity": ["past acquisition labels", "24 current ownership flags"],
 }
 
 
@@ -91,7 +107,14 @@ def features_for(flags):
 
 
 def load_config(path):
-    c = json.loads(Path(path).read_text())
+    c = json.loads(Path(path).read_text(encoding="utf-8"))
+    return validate_config(c)
+
+
+def validate_config(c):
+    require(isinstance(c, dict), "config must be an object")
+    for section in ["data", "split", "feature_groups", "meta_models", "model", "run"]:
+        require(isinstance(c.get(section), dict), f"missing config section: {section}")
     features_for(c["feature_groups"])
     for key in ["refit_for_forecast", "ablation"]:
         require(type(c["run"][key]) is bool, f"run.{key} must be a JSON boolean")
@@ -116,9 +139,18 @@ def load_config(path):
                 type(c[section][key]) is int and c[section][key] > 0,
                 f"{section}.{key} must be a positive integer",
             )
-    require(c["meta_models"]["affinity_prior"] > 0, "affinity_prior must be positive")
+    for section, key in [("meta_models", "affinity_prior"), ("model", "learning_rate")]:
+        v = c[section][key]
+        require(type(v) in (int, float) and math.isfinite(v) and v > 0,
+                f"{section}.{key} must be finite and positive")
+    require(c["model"]["learning_rate"] <= 1, "learning_rate must be <= 1")
+    require(type(c["model"]["seed"]) is int and c["model"]["seed"] >= 0,
+            "seed must be a nonnegative integer")
+    require(bool(re.fullmatch(r"[A-Za-z0-9_-]+", c["run"]["name"])),
+            "run.name must be a simple directory name")
     sp = c["split"]
     groups = [sp[k] for k in ["train_origins", "validation_origins", "test_origins"]]
+    require(all(isinstance(x, list) for x in groups), "origin groups must be lists")
     require(
         all(x == sorted(set(x)) and x for x in groups),
         "origins must be sorted, nonempty and unique",
@@ -134,7 +166,13 @@ def load_config(path):
     for m in sum(groups, []) + [
         c["data"]["history_start"],
         c["data"]["forecast_month"],
+        c["meta_models"]["clv_min_history_origin"],
+        c["meta_models"]["persona_rules_available_from"],
+        c["meta_models"]["persona_rules_fit_origin"],
+        c["meta_models"]["persona_rules_label_month"],
     ]:
+        require(isinstance(m, str) and bool(re.fullmatch(r"\d{4}-\d{2}", m)),
+                "month must be YYYY-MM")
         require(str(pd.Period(m, "M")) == m, "month must be YYYY-MM")
     require(
         c["model"]["backend"] in ["xgboost", "hist_gradient_boosting"],
@@ -144,10 +182,17 @@ def load_config(path):
         c["data"]["history_start"] < min(groups[0]), "history required before training"
     )
     if c["feature_groups"]["persona"]:
+        meta = c["meta_models"]
+        require(shift(meta["persona_rules_fit_origin"], 1) == meta["persona_rules_label_month"],
+                "persona provenance must use next-month labels")
+        require(meta["persona_rules_available_from"] >= meta["persona_rules_label_month"],
+                "persona rules cannot be available before their fit labels")
         require(
             c["meta_models"]["persona_rules_available_from"] <= min(groups[0]),
             "persona rules unavailable at earliest training origin",
         )
+    require(c["model"]["max_train_event_rows"] >= sum(map(len, groups)),
+            "max_train_event_rows must cover every origin, including forecast refit")
     return c
 
 

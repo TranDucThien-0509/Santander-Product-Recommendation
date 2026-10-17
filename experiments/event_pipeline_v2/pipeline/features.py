@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor
-from .common import PRODUCTS, BASE_NUM, shift, month_index, write_json
+from .common import PRODUCTS, BASE_NUM, shift, month_index, write_json, FEATURE_VERSIONS
 
 
 def read_month(cache, month):
@@ -35,6 +35,8 @@ def pair(cache, origin):
             n_next=n_next,
             n_eligible=len(a),
             n_first_seen_next=first_seen_next,
+            n_absent_next=n_origin - len(ids),
+            n_incomplete_pairs=int((~good).sum()),
         ),
     )
 
@@ -62,11 +64,72 @@ def persona(q, available):
         ["P1", "P2", "P3", "P4", "P5", "P6"],
         default="UNKNOWN",
     )
-    unknown = q.observed_pairs.to_numpy() < 3
+    # Same common cohort as notebook 10: current complete snapshot, valid F/R,
+    # finite exposure, and at least three observed consecutive complete pairs.
+    valid = (
+        q.product_complete.eq(1).to_numpy()
+        & np.isfinite(f) & (f >= 0) & (f == np.floor(f))
+        & np.isfinite(n) & (n >= 0) & (n <= 24) & (n == np.floor(n))
+        & np.isfinite(q.observed_pairs.to_numpy())
+        & (q.observed_pairs.to_numpy() >= 3)
+        & ((f == 0) | (np.isfinite(q.R.to_numpy()) & q.R.ge(0).to_numpy()))
+    )
+    unknown = ~valid
     if not available:
         unknown[:] = True
     ids[unknown] = "UNKNOWN"
     return ids, unknown.astype("int8")
+
+
+def portfolio_points(q, stats, total_n, total_events):
+    """Notebook 01 export: 100 * historical rate, with global-rate fallback."""
+    complete = q[PRODUCTS].notna().all(axis=1)
+    q["M_group_points"] = np.nan
+    q["M_group_history_n"] = 0
+    q["M_group_uses_baseline"] = 0
+    q["score_history_available"] = int(total_n > 0)
+    q["historical_baseline"] = total_events / total_n if total_n else np.nan
+    if complete.any() and total_n:
+        codes = portfolio_code(q.loc[complete, PRODUCTS].to_numpy())
+        support = np.array([stats.get(int(code), (0, 0))[0] for code in codes])
+        rates = [stats[int(code)][1] / stats[int(code)][0] if n else total_events / total_n
+                 for code, n in zip(codes, support)]
+        q.loc[complete, "M_group_points"] = np.round(np.asarray(rates) * 100, 10)
+        q.loc[complete, "M_group_history_n"] = support
+        q.loc[complete, "M_group_uses_baseline"] = (support == 0).astype("int8")
+    q["rfm_m_missing"] = q.M_group_points.isna().astype("int8")
+    return q
+
+
+def lifecycle_frame(ledger, current, month, gaps):
+    """Presence-only notebook 05 states for all customers known by this month."""
+    mi = month_index(month)
+    frame = pd.DataFrame(index=ledger.index)
+    frame["customer_id"] = frame.index
+    frame["month"] = month
+    frame["is_observed"] = frame.index.isin(current.index)
+    frame["missing_months"] = (mi - ledger.last_seen).astype("int64")
+    frame["first_seen_month_idx"] = ledger.first_seen
+    frame["is_left_censored"] = ledger.is_left_censored.astype(bool)
+    frame["bank_relationship_age_months"] = current.relationship_age_months
+    frame["returned_to_panel"] = False
+    frame["absence_before_return"] = np.nan
+    returned = gaps.index[gaps.gt(0)]
+    frame.loc[returned, "returned_to_panel"] = True
+    frame.loc[returned, "absence_before_return"] = gaps.loc[returned]
+    frame["lifecycle"] = np.select(
+        [~frame.is_observed & frame.missing_months.ge(6), ~frame.is_observed,
+         frame.returned_to_panel & frame.absence_before_return.ge(6),
+         frame.bank_relationship_age_months.between(0, 2, inclusive="left")],
+        ["Churned", "At-risk", "Win-back", "New"], default="Active",
+    )
+    frame["lifecycle_reason"] = frame.lifecycle.map({
+        "New": "new_bank_relationship", "Active": "observed_presence",
+        "At-risk": "short_panel_absence", "Churned": "panel_absence_proxy",
+        "Win-back": "return_after_churn_proxy",
+    })
+    frame["rule_version"] = FEATURE_VERSIONS["lifecycle"]
+    return frame
 
 
 def affinity(cache, month, c, current):
@@ -118,6 +181,7 @@ def clv_fit_predict(cache, feature_dir, month, c, current):
         )
     xparts = []
     yparts = []
+    used_origins = []
     seed = c["model"]["seed"]
     cap = meta["clv_max_train_rows"]
     # Reserve equal capacity per month; every model sees only outcomes already observed.
@@ -137,11 +201,17 @@ def clv_fit_predict(cache, feature_dir, month, c, current):
             target = target[ix]
         xparts.append(q)
         yparts.append(target)
+        used_origins.append(origin)
     audit = dict(
-        max_label_month=month if origins else None,
+        max_label_month=max((shift(o, 1) for o in used_origins), default=None),
         train_rows=sum(map(len, yparts)),
         inputs=BASE_NUM,
         method="unavailable",
+        version=FEATURE_VERSIONS["clv"],
+        horizon_months=1,
+        sampling_seed=seed,
+        origin_candidates=origins,
+        origins_used=used_origins,
     )
     if not yparts:
         return np.full(len(current), np.nan), np.ones(len(current), dtype="int8"), audit
@@ -170,6 +240,8 @@ def clv_fit_predict(cache, feature_dir, month, c, current):
 def build_features(cache, c, out):
     feature_dir = Path(out) / "features"
     feature_dir.mkdir(parents=True, exist_ok=True)
+    lifecycle_dir = Path(out) / "lifecycle"
+    lifecycle_dir.mkdir(parents=True, exist_ok=True)
     flags = c["feature_groups"]
     ledger = pd.DataFrame()
     stats = {}
@@ -207,6 +279,8 @@ def build_features(cache, c, out):
             ledger["observed_pairs"] = 0
             ledger["last_event"] = np.nan
             ledger["last_seen"] = mi
+            ledger["first_seen"] = mi
+            ledger["is_left_censored"] = True
         new = q.index.difference(ledger.index)
         if len(new):
             extra = pd.DataFrame(
@@ -215,6 +289,8 @@ def build_features(cache, c, out):
                     "observed_pairs": 0,
                     "last_event": np.nan,
                     "last_seen": mi,
+                    "first_seen": mi,
+                    "is_left_censored": False,
                 },
                 index=new,
             )
@@ -239,34 +315,25 @@ def build_features(cache, c, out):
             q.relationship_age_months >= 0
         )
         q["calendar_month"] = pd.Period(month).month
-        q["missing_months"] = gaps
-        q["lifecycle"] = np.select(
-            [gaps >= 6, q.relationship_age_months < 2],
-            ["Win-back", "New"],
-            default="Active",
-        )
+        lifecycle = lifecycle_frame(ledger, q, month, gaps)
+        lifecycle.to_parquet(lifecycle_dir / f"{month}.parquet", index=False)
+        q["missing_months"] = lifecycle.loc[q.index, "missing_months"]
+        q["absence_before_return"] = gaps
+        q["lifecycle"] = lifecycle.loc[q.index, "lifecycle"]
         q["product_complete"] = complete.astype("int8")
-        q["M_group_points"] = np.nan
-        q["rfm_m_missing"] = 1
-        if complete.any():
-            codes = portfolio_code(q.loc[complete, PRODUCTS].to_numpy())
-            # Exact portfolio response propensity, not money or actual bank profit.
-            vals = [
-                stats[int(code)][1] / stats[int(code)][0]
-                if int(code) in stats
-                else np.nan
-                for code in codes
-            ]
-            q.loc[complete, "M_group_points"] = vals
-            q["rfm_m_missing"] = q.M_group_points.isna().astype("int8")
+        q = portfolio_points(q, stats, total_n, total_events)
         q["persona_id"], q["persona_unavailable"] = persona(
             q, month >= c["meta_models"]["persona_rules_available_from"]
         )
         q.to_parquet(feature_dir / f"{month}.parquet", index=False)
-        audit = dict(origin=month, history_through=month)
+        audit = dict(origin=month, history_through=month, feature_versions=FEATURE_VERSIONS,
+                     m_history_customer_months=total_n,
+                     m_max_label_month=month if total_n else None,
+                     lifecycle_counts={str(k): int(v) for k, v in lifecycle.lifecycle.value_counts().items()},
+                     persona_rules_available_from=c["meta_models"]["persona_rules_available_from"])
         if flags["clv"]:
             v, unavailable, info = clv_fit_predict(cache, feature_dir, month, c, q)
-            q["clv_expected_acquisitions_1m"] = v
+            q["predicted_acquisitions_1m"] = v
             q["clv_unavailable"] = unavailable
             audit["clv"] = info
         if flags["affinity"]:
