@@ -70,6 +70,7 @@ function render(p) {
   $("metric-period-note").textContent = `RFM, CLV, lifecycle và persona bên dưới lấy tại ${p.as_of_month}. Lịch sử đang xem: ${p.timeline[0].month} → ${p.as_of_month}.`;
   $("customer-title").textContent = `Khách hàng #${p.customer_id}`;
   $("profile-subtitle").textContent = `${p.timeline[0].month} → ${p.as_of_month} · ${p.timeline.length} tháng hiển thị · ${c.is_observed ? "Có trong snapshot" : "Vắng trong snapshot"}`;
+  renderEventContext(p);
   $("metrics").replaceChildren(
     metric("R / RECENCY", c.R == null ? "—" : `${fmt(c.R)} tháng`, c.rfm_no_event === 1 ? "Chưa ghi nhận sự kiện; không gán R = 0" : "Từ lần mở thêm sản phẩm gần nhất"),
     metric("F / FREQUENCY", fmt(c.F), "Số tháng có mở thêm SP trong lịch sử hợp lệ"),

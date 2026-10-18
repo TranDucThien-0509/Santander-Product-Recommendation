@@ -33,9 +33,31 @@ async function ensureAcquisitionSummary() {
   renderMonthIndex();
 }
 async function openEventCustomer(id,month) {
-  showDashboardView("profile");$("month").value=month;syncRange();
+  showDashboardView("profile");$("month").value=month;$("window").value="24";syncRange();
   await loadProfile(id);
   if(profile && profile.customer_id===id && profile.as_of_month===month)$("profile").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderEventContext(p) {
+  const panel=$("event-context");panel.hidden=p.as_of_month!==eventMonth;
+  if(panel.hidden)return;
+  const current=p.current, previous=p.timeline[p.timeline.length-2];
+  $("event-context-title").textContent=`Trước và tại tháng ${p.as_of_month}`;
+  const body=$("event-snapshot-body");body.replaceChildren();
+  for(const [label,snapshot] of [["Tháng trước",previous],["Tháng đang chọn",current]]){
+    const row=el("tr");const name=el("th",label);name.scope="row";row.append(name);
+    if(snapshot)row.append(...[snapshot.month,snapshot.lifecycle,fmt(snapshot.n_products),fmt(snapshot.R),fmt(snapshot.F),fmt(snapshot.M,3),fmt(snapshot.clv_1m,3)].map(value=>el("td",value)));
+    else {const cell=el("td",metadata.months.indexOf(p.as_of_month)===0?"Chưa có snapshot tháng trước trong bộ dữ liệu.":"Khoảng xem hiện tại chưa gồm tháng trước; chọn “Xem toàn bộ diễn biến” bên dưới.");cell.colSpan=7;row.append(cell);}
+    body.append(row);
+  }
+  const changes=$("event-product-changes");changes.replaceChildren();
+  for(const [label,codes] of [["Sản phẩm mở thêm",current.acquired],["Sản phẩm rời",current.removed]]){
+    const block=el("div");block.append(el("h3",label));
+    if(codes==null)block.append(el("p","Chưa xác định được vì thiếu cặp snapshot tháng liên tiếp đầy đủ.","small"));
+    else if(!codes.length)block.append(el("p","Không ghi nhận.","small"));
+    else {const chips=el("div",null,"event-products");for(const code of codes)chips.append(el("span",p.product_names[code]||code,"chip"));block.append(chips);}
+    changes.append(block);
+  }
+  $("event-lifecycle-note").textContent=previous ? (previous.lifecycle===current.lifecycle?`Lifecycle vẫn là ${current.lifecycle}.${current.acquired?.length?" Mở thêm sản phẩm không bắt buộc làm đổi lifecycle.":""}`:`Lifecycle: ${previous.lifecycle} → ${current.lifecycle}. Đây là hai trạng thái được ghi nhận ở hai tháng.`) : "Chưa có tháng trước trong khoảng xem để đối chiếu lifecycle.";
 }
 async function loadAcquisitions(month,page=1,focus=false) {
   if(!metadata.months.includes(month))return;
@@ -73,6 +95,7 @@ async function activateDashboardView(view) {
 async function initializeAcquisitionView(args) {
   const tabs=[$("tab-profile"),$("tab-acquisitions")];tabs.forEach((tab,i)=>{tab.disabled=false;tab.addEventListener("click",()=>activateDashboardView(i?"acquisitions":"profile"));tab.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"){e.preventDefault();tabs[1-i].focus();tabs[1-i].click();}});});
   $("back-to-acquisitions").addEventListener("click",()=>activateDashboardView("acquisitions"));
+  $("show-event-history").addEventListener("click",async()=>{const id=customerId,month=$("month").value;$("window").value="24";syncRange();await loadProfile(id);if(profile && profile.customer_id===id && profile.as_of_month===month)$("customer-history").scrollIntoView({behavior:"smooth",block:"start"});});
   $("choose-another-month").addEventListener("click",()=>$("month-index").scrollIntoView({behavior:"smooth",block:"start"}));
   $("acquisition-filter").addEventListener("submit",e=>{e.preventDefault();clearTimeout(acquisitionFilterTimer);loadAcquisitions(eventMonth,1);});
   $("acquisition-query").addEventListener("input",()=>{clearTimeout(acquisitionFilterTimer);acquisitionFilterTimer=setTimeout(()=>loadAcquisitions(eventMonth,1),250);});

@@ -170,3 +170,16 @@ tháng, loại bỏ gap/first-seen/incomplete, chưa xác định khi thiếu to
 lọc/phân trang và bất biến khi dữ liệu tháng tương lai đổi. HTTP test kiểm tra
 thêm hai endpoint cùng validation tháng/trang/mã lọc.
 Không cần raw thật cho CI.
+
+### Diễn biến trước lượt mở
+
+Khi mở khách từ danh sách lượt mở tháng, hồ sơ tự chọn toàn bộ lịch sử có sẵn
+đến tháng sự kiện (tối đa 24 tháng), kể cả khi khoảng xem trước đó chỉ có một
+tháng. Khối “Trước và tại tháng” ở đầu hồ sơ đối chiếu snapshot liền trước và
+tháng đang chọn: lifecycle, số sản phẩm, R/F/M và CLV tại từng tháng; đồng thời
+liệt kê tên sản phẩm mở thêm/rời. Mở thêm SP không bắt buộc đổi lifecycle.
+
+Nút “Xem toàn bộ diễn biến đến tháng này” dẫn tới biểu đồ và bảng lịch sử.
+Không đưa tháng sau sự kiện vào nhận định này. Nếu người dùng thu hẹp khoảng
+xem còn một tháng, khối đối chiếu báo chưa có tháng trước trong khoảng xem;
+không dùng snapshot gần nhất để lấp tháng vắng hoặc tự suy diễn giao dịch ngày.
