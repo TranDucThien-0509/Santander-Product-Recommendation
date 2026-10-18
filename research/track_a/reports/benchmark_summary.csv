@@ -1,0 +1,80 @@
+component,method,metric,value,cohort,source_months,evidence
+RFM,Quantile_555,AP,0.2643,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Quantile_555,Lift10,2.612,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Quantile_555,Brier,0.0988,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Quantile_555,rank_stability_min,0.9148,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F3_M5,AP,0.2675,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F3_M5,Lift10,2.6416,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F3_M5,Brier,0.0981,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F3_M5,rank_stability_min,0.9534,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F4_M5,AP,0.2753,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F4_M5,Lift10,2.6819,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F4_M5,Brier,0.0979,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,Hybrid_REDA_F4_M5,rank_stability_min,0.9554,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,KMeans_6,AP,0.2195,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,KMeans_6,Lift10,2.4107,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,KMeans_6,Brier,0.1008,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,KMeans_6,rank_stability_min,0.9429,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,M_only,AP,0.2786,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,M_only,Lift10,2.6471,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,M_only,Brier,0.1002,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+RFM,M_only,rank_stability_min,,HasEvent valid RFM pairs,2015-12..2016-04,saved_display_aggregate
+Persona,PersonaOnly,AP_mean,0.1446,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,PersonaOnly,Lift10_mean,5.6303,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,PersonaOnly,Brier_mean,0.0256,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_F4,AP_mean,0.1697,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_F4,Lift10_mean,5.6704,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_F4,Brier_mean,0.0254,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_M,AP_mean,0.2042,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_M,Lift10_mean,6.5439,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_M,Brier_mean,0.0248,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_R,AP_mean,0.1661,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_R,Lift10_mean,5.7075,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_R,Brier_mean,0.0254,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_RFM,AP_mean,0.2232,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_RFM,Lift10_mean,6.7326,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Persona,Persona_RFM,Brier_mean,0.0245,assigned valid persona pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,Lifecycle,AP,0.1221,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,Lifecycle,AUC,0.5025,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,Lifecycle,Lift10,1.045,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,Lifecycle,Brier,0.1069,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM,AP,0.2675,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM,AUC,0.7364,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM,Lift10,2.6416,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM,Brier,0.0981,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM+Lifecycle,AP,0.2691,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM+Lifecycle,AUC,0.7368,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM+Lifecycle,Lift10,2.653,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+Lifecycle,RFM+Lifecycle,Brier,0.0982,HasEvent RFM valid pairs,2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM,RMSE,0.2257,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM,capture10,0.6705,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM,lift10,6.7045,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM,calibration_ratio,1.1175,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_stable,RMSE,0.2242,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_stable,capture10,0.6634,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_stable,lift10,6.634,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_stable,calibration_ratio,1.097,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_only,RMSE,0.2277,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_only,capture10,0.6101,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_only,lift10,6.1011,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,ML_RFM_only,calibration_ratio,1.262,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,BGNBD,RMSE,0.2347,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,BGNBD,capture10,0.5105,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,BGNBD,lift10,5.1054,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,BGNBD,calibration_ratio,1.347,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,has_event_mean,RMSE,0.2368,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,has_event_mean,capture10,0.383,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,has_event_mean,lift10,3.8304,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+CLV,has_event_mean,calibration_ratio,1.3921,"current complete, fully observed next-month pairs",2015-12..2016-04,saved_display_aggregate
+Affinity,blend80,MAP7_all,0.024765,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,blend80,recall7_acquirers,0.972192,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,temporal,MAP7_all,0.024527,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,temporal,recall7_acquirers,0.958988,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,recent3_temporal,MAP7_all,0.02375,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,recent3_temporal,recall7_acquirers,0.964237,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,apriori,MAP7_all,0.021016,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,apriori,recall7_acquirers,0.951518,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,popularity,MAP7_all,0.020843,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,popularity,recall7_acquirers,0.956451,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,item2vec,MAP7_all,0.003122,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate
+Affinity,item2vec,recall7_acquirers,0.1397,all complete next-month pairs,2016-01..2016-04,saved_display_aggregate

@@ -1,5 +1,19 @@
 # Santander Product Recommendation — Pipeline MLOps trên GCP
 
+## Track A — Customer Segmentation / DS
+
+Bộ nghiên cứu Track A nằm tại [`research/track_a/`](research/track_a/README.md):
+notebook RFM quantile/KMeans/rule, lifecycle, CLV BG/NBD + Gamma-Gamma/ML,
+Apriori/item2vec, 6 persona card và package bàn giao. Xem
+[đối chiếu từng yêu cầu](research/track_a/docs/TRACK_A_AUDIT.md),
+[báo cáo chạy mới sample 10k](research/track_a/reports/sample_10k/TRACK_A_REPORT.md),
+[notebook demo 15–20 phút](research/track_a/notebooks/16_track_a_review.ipynb)
+và [feature store spec](research/track_a/docs/FEATURE_STORE_SPEC.md).
+Các bổ sung chạy lại bằng CLI `track_a` ở thư mục v2, có CI riêng và MLflow
+experiment `santander-track-a`. Kết quả sample, nghiên cứu gốc và full-cloud
+recommendation được ghi rõ phạm vi. Chủ repo chọn **GCS thay AWS S3**;
+xem [quyết định storage](research/track_a/docs/GCS_STORAGE.md) và receipt kiểm chứng.
+
 ## Configurable event pipeline v2
 
 Pipeline thử nghiệm tại [`experiments/event_pipeline_v2/`](experiments/event_pipeline_v2/README.md)
@@ -17,13 +31,13 @@ chọn từ validation; xem [bằng chứng cloud và metric](experiments/event_
 
 Hệ thống gợi ý sản phẩm tài chính cho bài toán **Santander Product Recommendation (Kaggle)**: từ EDA trên notebook, module hóa thành **pipeline 6 stage**, kiểm thử tự động (smoke test), đánh giá offline bằng **MAP@7**, đóng gói **Docker**, CI/CD bằng **GitHub Actions** và chạy job trên **Vertex AI Custom Jobs** (GCP).
 
-> **Trạng thái:** pipeline đã được xác thực trên dữ liệu mẫu 10k dòng (local, Docker, Vertex AI). **Chạy full 13.6M dòng trên cloud chưa thực hiện** — xem [mục 7](#7-hạn-chế--hướng-phát-triển).
+> **Hai pipeline:** phần mô tả sáu stage bên dưới là pipeline tham chiếu ở root, đã kiểm tra sample 10k dòng. Pipeline v2 đã chạy full **13.647.309 snapshot** trên Vertex; xem [CLOUD_RUNS.md](experiments/event_pipeline_v2/docs/CLOUD_RUNS.md). MLflow đã tích hợp cho v2; Track A có bộ nghiên cứu và sample benchmark riêng.
 
 ---
 
 ## 1. Bài toán
 
-- **Mục tiêu**: dựa trên lịch sử giao dịch từ 01/2015 đến 05/2016 của ngân hàng Santander (Tây Ban Nha), dự đoán các **sản phẩm mới** mỗi khách hàng sẽ mua thêm vào tháng **06/2016**.
+- **Mục tiêu**: dựa trên snapshot sở hữu sản phẩm hàng tháng từ 01/2015 đến 05/2016 của ngân hàng Santander (Tây Ban Nha), dự đoán các **sản phẩm mới** mỗi khách hàng sẽ mở thêm vào tháng **06/2016**. Dataset không có transaction/invoice hoặc monetary thật.
 - **Dữ liệu**: hơn 13.6 triệu dòng (~2.3 GB CSV), 24 sản phẩm tài chính cùng thông tin nhân khẩu học và hành vi khách hàng.
 - **Thách thức**:
   1. Dữ liệu lớn, dễ tràn RAM trên máy cá nhân.
@@ -183,7 +197,7 @@ Job full (`custom_job_full.yaml`) ghi kết quả vào `full_run/`.
 
 | Chỉ số | Giá trị |
 |---|---|
-| Điểm Kaggle Public | ≈ 0.029 (điểm cao nhất cuộc thi: 0.031) |
+| Điểm Kaggle Public | Chưa có submission ID/link được lưu để xác minh; không dùng làm bằng chứng benchmark trong repo. |
 | `map7_valid` (full run) | _chưa có — chờ full run_ |
 | So sánh với baseline (sản phẩm phổ biến theo segment) | _chưa có_ |
 | Thời gian / RAM / chi phí full run trên Vertex | _chưa có_ |
@@ -194,7 +208,7 @@ Job full (`custom_job_full.yaml`) ghi kết quả vào `full_run/`.
 
 ## 8. Hạn chế & hướng phát triển
 
-**Hạn chế hiện tại**
+**Hạn chế pipeline sáu stage ở root** (phân biệt với v2 và Track A ở trên)
 - **Chưa chạy full 13.6M dòng trên Vertex AI**; chưa có số đo thời gian, RAM, chi phí thật.
 - Mô hình huấn luyện trên nhãn tháng 06/2015 (cùng mùa với tháng test 06/2016), chưa dùng toàn bộ 2015–2016.
 - Tập validation là tách 20% khách hàng trong cùng tháng, không phải validation theo thời gian.

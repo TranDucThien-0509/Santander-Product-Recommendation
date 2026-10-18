@@ -1,0 +1,35 @@
+{
+  "origin": "2015-11",
+  "label_end": "2016-05",
+  "horizon_months": 6,
+  "train_origins": [
+    "2015-03",
+    "2015-04",
+    "2015-05"
+  ],
+  "max_train_label_month": "2015-11",
+  "train_rows": 19533,
+  "current_complete_n": 9507,
+  "labeled_n": 9417,
+  "label_coverage": 0.9905332912590723,
+  "scope": "fixed-configuration development backtest; no 6m validation selection",
+  "monetary_proxy": "acquisitions per repeat event-month, unit product weights = 1; not revenue or profit",
+  "explanation": {
+    "method": "SHAP TreeExplainer",
+    "sample_n": 200,
+    "link": "log_expected_acquisitions",
+    "additive_reconstruction_verified": true
+  },
+  "inputs": [
+    "R",
+    "F_event_months",
+    "M_group_points",
+    "n_products",
+    "observed_pairs",
+    "age",
+    "renta",
+    "antiguedad",
+    "relationship_age_months"
+  ],
+  "twelve_month_status": "not enough calendar history for causal supervised train/validation/test"
+}

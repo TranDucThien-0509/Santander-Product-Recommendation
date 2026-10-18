@@ -1,0 +1,28 @@
+{
+  "rows": 143126,
+  "months": 17,
+  "customers": 10000,
+  "first_month": "2015-01",
+  "last_month": "2016-05",
+  "cardinality": {
+    "canal_entrada": 102,
+    "segmento": 3,
+    "pais_residencia": 21,
+    "indrel_1mes": 9
+  },
+  "missing_share": {
+    "age": 0.001355449044897503,
+    "renta": 0.20374355463018598,
+    "cod_prov": 0.005470704134818272,
+    "indrel_1mes": 0.010054078224780962,
+    "canal_entrada": 0.013212134762377207,
+    "segmento": 0.01326802956835236,
+    "pais_residencia": 0.001355449044897503,
+    "ind_actividad_cliente": 0.001355449044897503,
+    "indfall": 0.001355449044897503,
+    "antiguedad": 0.0
+  },
+  "absent_optional_columns": [],
+  "mean_owned_products": 1.467210191795381,
+  "mean_absence_or_incomplete_rate": 0.002293554666461568
+}

@@ -1,0 +1,651 @@
+{
+  "feature_view": "santander_track_a_customer_month_v1",
+  "version": "1.0.0",
+  "entity_keys": [
+    "customer_id"
+  ],
+  "event_time": "as_of_month",
+  "available_time": "source snapshot publication time",
+  "physical_time_type": "YYYY-MM period; resolve to actual publication timestamp before production ingestion",
+  "naming": "snake_case; source-to-canonical map below",
+  "source_to_canonical": {
+    "R": "rfm_recency_months",
+    "F_event_months": "rfm_frequency_event_months",
+    "M_group_points": "portfolio_propensity_points",
+    "cluster_id": "persona_cluster_id",
+    "persona_id": "persona_rule_id"
+  },
+  "refresh": "monthly and on corrected upstream snapshots",
+  "ttl": "45 days maximum, invalidate on next snapshot",
+  "point_in_time_join": "latest available snapshot <= scoring timestamp, not expired; never forward-fill across panel absence",
+  "schema": [
+    {
+      "name": "customer_id",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "entity",
+      "definition": "Santander ncodpers; join key only, never a model input"
+    },
+    {
+      "name": "sexo",
+      "dtype": "string",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "age",
+      "dtype": "float64",
+      "nullable": true,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "fecha_alta",
+      "dtype": "datetime64[ns]",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "antiguedad",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "canal_entrada",
+      "dtype": "string",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "nomprov",
+      "dtype": "string",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "renta",
+      "dtype": "float64",
+      "nullable": true,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "segmento",
+      "dtype": "string",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "ind_ahor_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_aval_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_cco_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_cder_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_cno_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_ctju_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_ctma_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_ctop_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_ctpp_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_deco_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_deme_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_dela_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_ecue_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_fond_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_hip_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_plan_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_pres_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_reca_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_tjcr_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_valo_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_viv_fin_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_nomina_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_nom_pens_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "ind_recibo_ult1",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Current 0/1 ownership flag; incomplete portfolios excluded"
+    },
+    {
+      "name": "month",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "rfm_frequency_event_months",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Cumulative number of observed months with at least one acquisition, not total product count"
+    },
+    {
+      "name": "observed_pairs",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "rfm_recency_months",
+      "dtype": "float64",
+      "nullable": true,
+      "role": "feature",
+      "definition": "Months since last observed consecutive-complete-snapshot 0-to-1 acquisition; null before any event"
+    },
+    {
+      "name": "rfm_no_event",
+      "dtype": "int8",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "n_products",
+      "dtype": "float32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Sum of all 24 complete ownership flags at as-of month"
+    },
+    {
+      "name": "relationship_age_months",
+      "dtype": "int32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "calendar_month",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "missing_months",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "absence_before_return",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "lifecycle",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Track A activity/death enrichment: indfall=S -> Churned; current inactive -> At-risk except New/Win-back"
+    },
+    {
+      "name": "product_complete",
+      "dtype": "int8",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "portfolio_propensity_points",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "100 times historical exact-portfolio next-month event rate, using only completed past labels; pooled fallback"
+    },
+    {
+      "name": "m_group_history_n",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "m_group_uses_baseline",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "score_history_available",
+      "dtype": "int64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "historical_baseline",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "rfm_m_missing",
+      "dtype": "int8",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "persona_rule_id",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Frozen P1-P6 rule labels; UNKNOWN if insufficient valid history or rules unavailable"
+    },
+    {
+      "name": "persona_unavailable",
+      "dtype": "int8",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "predicted_acquisitions_1m",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Point-in-time Poisson boosting prediction of next-month product count; proxy, not money"
+    },
+    {
+      "name": "clv_unavailable",
+      "dtype": "int8",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Source field/quality metadata defined in event_pipeline_v2/docs/FEATURE_CATALOG.md and Track A feature spec"
+    },
+    {
+      "name": "affinity_ind_ahor_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_ahor_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_aval_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_aval_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_cco_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_cco_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_cder_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_cder_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_cno_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_cno_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_ctju_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_ctju_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_ctma_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_ctma_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_ctop_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_ctop_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_ctpp_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_ctpp_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_deco_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_deco_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_deme_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_deme_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_dela_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_dela_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_ecue_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_ecue_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_fond_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_fond_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_hip_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_hip_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_plan_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_plan_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_pres_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_pres_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_reca_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_reca_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_tjcr_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_tjcr_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_valo_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_valo_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_viv_fin_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_viv_fin_ult1"
+    },
+    {
+      "name": "affinity_ind_nomina_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_nomina_ult1"
+    },
+    {
+      "name": "affinity_ind_nom_pens_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_nom_pens_ult1"
+    },
+    {
+      "name": "affinity_ind_recibo_ult1",
+      "dtype": "float64",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Past-only smoothed temporal ownership-to-acquisition score for ind_recibo_ult1"
+    },
+    {
+      "name": "persona_cluster_id",
+      "dtype": "int32",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Nominal C1-Ck multiblock KMeans cluster, transform and centers frozen at persona_cluster_fit_month"
+    },
+    {
+      "name": "as_of_month",
+      "dtype": "object",
+      "nullable": false,
+      "role": "event_time",
+      "definition": "Month of the observed ownership snapshot; no future target fields"
+    },
+    {
+      "name": "rfm_quantile_333",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Frozen fit-month R/F/current-portfolio quantiles; duplicate edges collapse; no-event R has own bucket"
+    },
+    {
+      "name": "rfm_kmeans_6",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Frozen fit-month six-center KMeans on R/F/current-portfolio and no-event indicator"
+    },
+    {
+      "name": "rfm_rule_based",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Fixed R <=1/<=3/>3; F 0/1/>=2; current products <=2/<=4/>4; missing R separate"
+    },
+    {
+      "name": "presence_lifecycle",
+      "dtype": "object",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Original panel-presence lifecycle from v2, including prior gap and relationship age"
+    },
+    {
+      "name": "cross_sell_eligible",
+      "dtype": "boolean",
+      "nullable": false,
+      "role": "feature",
+      "definition": "Observed snapshot, known indfall=N and activity=1; missing status is ineligible"
+    }
+  ],
+  "source_versions": {
+    "rfm": "notebook01-group-points-baseline-v2",
+    "persona": "notebook10-tree6-nov2015-fixed-rules-v1",
+    "lifecycle": "lifecycle-v3-presence-gap6",
+    "clv": "baseline-numeric-poisson-1m-v1",
+    "affinity": "temporal-ownership-smoothed-24-v1"
+  },
+  "persona_cluster_fit_month": "2015-11",
+  "offline_only": [
+    "long-horizon labels",
+    "evaluation outcomes"
+  ],
+  "data_owner": "Track A DS",
+  "quality_checks": [
+    "unique customer_id/as_of_month",
+    "nonnegative F",
+    "ownership in {0,1}",
+    "missing R iff no observed event",
+    "CLV train label cutoff <= origin",
+    "product order locked to PRODUCTS"
+  ],
+  "limitations": [
+    "template feature store handoff; no production registry deployed",
+    "Kaggle research data only"
+  ],
+  "source_history_end": "2016-05"
+}

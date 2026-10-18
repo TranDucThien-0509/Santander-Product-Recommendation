@@ -1,0 +1,22 @@
+{
+  "as_of_month": "2016-05",
+  "rfm_method": "Hybrid_REDA_F4_M5",
+  "rfm_fit_month": "2015-11",
+  "clv_horizon_months": 1,
+  "clv_target": "acquisitions",
+  "clv_method": "ML_RFM_stable",
+  "recommendation_method": "recent3_temporal",
+  "lifecycle_rule_version": "lifecycle-v3-presence-gap6",
+  "persona_version": "tree6-nov2015-v1",
+  "paths": {
+    "raw_csv_or_zip": "/kaggle/input/competitions/santander-product-recommendation/train_ver2.csv.zip",
+    "rfm_features_dir": "/REPLACE/output01/rfm_all_months",
+    "rfm_model_dir": "/REPLACE/output03/03-rfm-method-comparison",
+    "lifecycle_dir": "/REPLACE/output05/lifecycle_full/customer_lifecycle",
+    "persona_dir": "/REPLACE/output10/persona_tree_outputs",
+    "clv_dir": "/REPLACE/output07/clv_outputs",
+    "affinity_dir": "/REPLACE/output13/affinity_outputs_current",
+    "snapshot_cache_dir": "/REPLACE/output13/affinity_snapshot_cache",
+    "output_dir": "/kaggle/working/santander_final"
+  }
+}

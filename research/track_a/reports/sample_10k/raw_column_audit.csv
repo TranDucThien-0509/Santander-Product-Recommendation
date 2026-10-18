@@ -1,0 +1,11 @@
+column,present,missing_n,missing_share,cardinality
+age,True,194,0.001355449044897503,
+renta,True,29161,0.20374355463018598,
+cod_prov,True,783,0.005470704134818272,
+indrel_1mes,True,1439,0.010054078224780962,9.0
+canal_entrada,True,1891,0.013212134762377207,102.0
+segmento,True,1899,0.01326802956835236,3.0
+pais_residencia,True,194,0.001355449044897503,21.0
+ind_actividad_cliente,True,194,0.001355449044897503,
+indfall,True,194,0.001355449044897503,
+antiguedad,True,0,0.0,

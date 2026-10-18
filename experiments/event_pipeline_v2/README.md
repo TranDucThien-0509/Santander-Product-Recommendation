@@ -154,3 +154,9 @@ Workflow v2 nằm tại root `.github/workflows/event-pipeline-v2.yml`, cài req
 ## 8. MLflow
 
 Đã tích hợp tracking tùy chọn: một run cha cho pipeline và run con cho từng variant, gồm config, validation/test MAP@7, recall, coverage, thời gian/RAM và JSON audit. Bật `tracking.enabled=true` trong config local. Xem [hướng dẫn MLflow](docs/MLFLOW.md) để mở UI, dùng server từ Vertex và import cloud run lịch sử.
+
+## 9. Track A customer analytics
+
+Phần bổ sung nằm trong package `track_a/`, dependencies riêng `requirements-track-a.txt`. CLI `python -m track_a.run --help` chạy EDA/event export, RFM tiering/stability, CLV 6m BG/NBD + Gamma-Gamma/gradient boosting + SHAP, persona clustering và affinity audit từ completed v2 run. Không đổi feature/version/model của ranker đang dùng.
+
+Xem [audit từng yêu cầu](../../research/track_a/docs/TRACK_A_AUDIT.md), [cách tái chạy và S3 export](../../research/track_a/docs/REPRODUCE.md), [báo cáo sample thực tế](../../research/track_a/reports/sample_10k/TRACK_A_REPORT.md) và [notebook demo](../../research/track_a/notebooks/16_track_a_review.ipynb). Bộ notebook nghiên cứu cũ, benchmark aggregate có provenance và 6 persona card đã được đưa vào `research/track_a/`; không trộn kết quả đó với full-cloud recommendation benchmark.

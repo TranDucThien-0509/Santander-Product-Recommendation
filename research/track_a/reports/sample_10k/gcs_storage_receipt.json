@@ -1,0 +1,134 @@
+{
+  "provider": "GCS",
+  "status": "verified",
+  "destination": "gs://uit-thien-santander-ds/track-a/sample-10k-20261018T042040Z-gcs/processed",
+  "file_count": 19,
+  "data_bytes": 754249,
+  "manifest_sha256": "35d41ae34a2eaa3a52472e831fbd0041025c60c9f2e19597edccffd7c86e8bdc",
+  "verified_at": "2026-10-18T05:32:15.320804+00:00",
+  "verification": "Downloaded every data/spec object and completion manifest; matched size and SHA256",
+  "manifest_uri": "gs://uit-thien-santander-ds/track-a/sample-10k-20261018T042040Z-gcs/processed/processed_manifest.json",
+  "action": "verify_existing",
+  "objects": [
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-02.parquet",
+      "generation": "1792301318511300",
+      "bytes": 5566,
+      "crc32c": "MlfYyA=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-03.parquet",
+      "generation": "1792301319611574",
+      "bytes": 5555,
+      "crc32c": "/Qnf/A=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-04.parquet",
+      "generation": "1792301320080489",
+      "bytes": 5730,
+      "crc32c": "2OJwBg=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-05.parquet",
+      "generation": "1792301321172465",
+      "bytes": 5207,
+      "crc32c": "//ScUg=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-06.parquet",
+      "generation": "1792301321708464",
+      "bytes": 6163,
+      "crc32c": "S90IAw=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-07.parquet",
+      "generation": "1792301322794480",
+      "bytes": 5832,
+      "crc32c": "P2LM9w=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-08.parquet",
+      "generation": "1792301323242979",
+      "bytes": 5454,
+      "crc32c": "TJNXxA=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-09.parquet",
+      "generation": "1792301324332284",
+      "bytes": 5917,
+      "crc32c": "3Ztc4w=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-10.parquet",
+      "generation": "1792301324769500",
+      "bytes": 5823,
+      "crc32c": "gpR3gQ=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-11.parquet",
+      "generation": "1792301325833885",
+      "bytes": 5774,
+      "crc32c": "UAoWjg=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2015-12.parquet",
+      "generation": "1792301326295273",
+      "bytes": 6293,
+      "crc32c": "6tQ7oA=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2016-01.parquet",
+      "generation": "1792301327356335",
+      "bytes": 5739,
+      "crc32c": "PKS3Iw=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2016-02.parquet",
+      "generation": "1792301328064089",
+      "bytes": 6564,
+      "crc32c": "sPqLCg=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2016-03.parquet",
+      "generation": "1792301329012456",
+      "bytes": 5667,
+      "crc32c": "vbGQ1w=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2016-04.parquet",
+      "generation": "1792301329769453",
+      "bytes": 5656,
+      "crc32c": "1mwl2g=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/acquisition_events/2016-05.parquet",
+      "generation": "1792301330572970",
+      "bytes": 5820,
+      "crc32c": "ns2HUg=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/customer_features_latest.parquet",
+      "generation": "1792301316181998",
+      "bytes": 547686,
+      "crc32c": "uwhi5w=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/feature_store_spec.json",
+      "generation": "1792301316649066",
+      "bytes": 22096,
+      "crc32c": "w5pu8Q=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/lifecycle_latest.parquet",
+      "generation": "1792301318014425",
+      "bytes": 91707,
+      "crc32c": "Q8bfJQ=="
+    },
+    {
+      "name": "track-a/sample-10k-20261018T042040Z-gcs/processed/processed_manifest.json",
+      "generation": "1792301382570186",
+      "bytes": 3447,
+      "crc32c": "uFocig=="
+    }
+  ]
+}

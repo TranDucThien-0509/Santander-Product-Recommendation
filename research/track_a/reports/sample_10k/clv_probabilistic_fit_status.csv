@@ -1,0 +1,3 @@
+n_current,bg_eligible_n,gamma_eligible_n,fallback_share,horizon_months,method,status,penalizer,frequency_value_spearman,proxy_unit
+9507,1514,745,0.8407489218470601,6,BGNBD,fit,0.01,,
+9507,1514,745,0.8407489218470601,6,BGNBD_GammaGamma,fit,0.01,0.2527904716743147,products acquired per event-month; not money

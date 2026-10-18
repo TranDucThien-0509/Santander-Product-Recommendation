@@ -1,0 +1,6 @@
+persona_id,method,months,AP_mean,Lift10_mean,Lift10_min,Brier_mean,delta_AP_mean,delta_Lift10_mean,delta_Brier_mean,fallback_max
+ALL,PersonaOnly,5,0.1446,5.6303,5.2806,0.0256,0.0,0.0,0.0,0.0
+ALL,Persona_F4,5,0.1697,5.6704,5.2806,0.0254,0.0251,0.0401,-0.0002,0.0
+ALL,Persona_M,5,0.2042,6.5439,6.1731,0.0248,0.0597,0.9137,-0.0008,0.0
+ALL,Persona_R,5,0.1661,5.7075,5.3792,0.0254,0.0215,0.0773,-0.0002,0.0
+ALL,Persona_RFM,5,0.2232,6.7326,6.2927,0.0245,0.0786,1.1023,-0.0011,0.0022
