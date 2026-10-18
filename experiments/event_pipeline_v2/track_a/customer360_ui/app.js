@@ -59,12 +59,14 @@ function chart(title, rows, key, digits) {
 }
 function render(p) {
   const c = p.current;
+  $("metric-month").textContent = `Điểm tại tháng ${p.as_of_month} · Khách #${p.customer_id}`;
+  $("metric-period-note").textContent = `RFM, CLV, lifecycle và persona bên dưới lấy tại ${p.as_of_month}. Lịch sử đang xem: ${p.timeline[0].month} → ${p.as_of_month}.`;
   $("customer-title").textContent = `Khách hàng #${p.customer_id}`;
   $("profile-subtitle").textContent = `${p.timeline[0].month} → ${p.as_of_month} · ${p.timeline.length} tháng hiển thị · ${c.is_observed ? "Có trong snapshot" : "Vắng trong snapshot"}`;
   $("metrics").replaceChildren(
     metric("R / RECENCY", c.R == null ? "—" : `${fmt(c.R)} tháng`, c.rfm_no_event === 1 ? "Chưa ghi nhận sự kiện; không gán R = 0" : "Từ lần mở thêm sản phẩm gần nhất"),
     metric("F / FREQUENCY", fmt(c.F), "Số tháng có mở thêm SP trong lịch sử hợp lệ"),
-    metric("M / PROPENSITY", fmt(c.M, 3), c.m_uses_baseline === 1 ? "Điểm danh mục · đang dùng baseline" : "Điểm propensity nhóm danh mục · không phải tiền"),
+    metric("M / PROPENSITY", fmt(c.M, 3), `Điểm danh mục tại ${p.as_of_month} · ${c.m_uses_baseline === 1 ? "dùng baseline" : "không phải tiền"}`),
     metric("CLV / 1 THÁNG", fmt(c.clv_1m, 3), `SP mở thêm kỳ vọng cho ${p.forecast_month}`),
     metric("LIFECYCLE", c.lifecycle, c.historical_deceased ? "Có cờ indfall=S trong lịch sử · cần xác minh" : `Theo quan sát & trạng thái khách tại ${p.as_of_month}`)
   );
@@ -79,7 +81,10 @@ function render(p) {
   $("charts").replaceChildren(chart("Số sản phẩm đang sở hữu", p.timeline,"n_products",0), chart("CLV-proxy · SP mở thêm kỳ vọng 1 tháng",p.timeline,"clv_1m",3));
   $("history-body").replaceChildren(...p.timeline.map(r => {
     const tr = el("tr"); const lifecycle = el("td"); lifecycle.append(pill(r.lifecycle));
-    tr.append(el("td",r.month), lifecycle, el("td",fmt(r.R)), el("td",fmt(r.F)), el("td",fmt(r.M,3)), el("td",fmt(r.n_products)), el("td",fmt(r.clv_1m,3)), el("td",`${r.cluster || "—"} / ${r.persona_rule || "—"}`));
+    const monthCell=el("td"), monthButton=el("button",r.month,"month-link");monthButton.type="button";monthButton.setAttribute("aria-label",`Xem điểm tại ${r.month}`);monthButton.title=`Xem RFM, CLV, lifecycle tại ${r.month}`;
+    if(r.known)monthButton.addEventListener("click",()=>{$("month").value=r.month;syncRange();loadProfile(p.customer_id,{focusMetrics:true});});else monthButton.disabled=true;
+    if(r.month===p.as_of_month)monthButton.setAttribute("aria-current","date");monthCell.append(monthButton);
+    tr.append(monthCell, lifecycle, el("td",fmt(r.R)), el("td",fmt(r.F)), el("td",fmt(r.M,3)), el("td",fmt(r.n_products)), el("td",fmt(r.clv_1m,3)), el("td",`${r.cluster || "—"} / ${r.persona_rule || "—"}`));
     const changes = el("td",r.acquired == null ? "—" : `+${r.acquired.length} / −${r.removed.length}`);
     changes.title = r.acquired == null ? "Không có cặp tháng liên tiếp đầy đủ" : `Mở: ${r.acquired.map(x=>p.product_names[x]).join(", ") || "0"}; Rời: ${r.removed.map(x=>p.product_names[x]).join(", ") || "0"}`;
     tr.append(changes); return tr;
@@ -99,13 +104,14 @@ function render(p) {
   $("provenance").textContent = `Nguồn: ${p.source_run} · Scope: ${p.scope} · As-of: ${p.as_of_month} · Không dùng tháng tương lai cho nhận định tại tháng đã chọn.`;
   $("profile").hidden=false;
 }
-async function loadProfile(id) {
+async function loadProfile(id, {focusMetrics=false} = {}) {
   const version=++requestVersion; searchVersion++; $("results").replaceChildren(); $("profile").hidden=true;
   status("Đang tổng hợp hồ sơ…"); $("search-form").querySelector("button").disabled=true;
   try {
     const p=await api(`/api/profile?${new URLSearchParams({id,month:$("month").value,window:selectedWindow()})}`);
     if(version!==requestVersion)return;
     profile=p; customerId=p.customer_id; $("customer").value=String(customerId); render(p); status(`Đã tổng hợp hồ sơ #${id} tại ${p.as_of_month}.`);
+    if(focusMetrics)$("metric-month").scrollIntoView({behavior:"smooth",block:"start"});
     history.replaceState(null,"",`/?${new URLSearchParams({id,month:p.as_of_month,window:p.window,preset:$("window").value})}`);
   } catch(e) { if(version===requestVersion) status(e.message,true); }
   finally {if(version===requestVersion) $("search-form").querySelector("button").disabled=false;}
@@ -114,7 +120,7 @@ $("search-form").addEventListener("submit",e=>{e.preventDefault();loadProfile($(
 $("customer").addEventListener("input",()=>{clearTimeout(timer); const version=++searchVersion; const q=$("customer").value.trim(); $("results").replaceChildren(); if(!/^\d{1,12}$/.test(q))return; timer=setTimeout(async()=>{
   try { const rows=await api(`/api/customers?${new URLSearchParams({q,month:$("month").value})}`); if(version!==searchVersion)return; $("results").replaceChildren(...rows.map(r=>{const b=el("button",`#${r.customer_id} · ${r.lifecycle}`);b.type="button";b.addEventListener("click",()=>loadProfile(r.customer_id));return b;})); } catch(e){if(version===searchVersion)status(e.message,true);}
 },220);});
-for(const id of ["month","window","start-month"]) $(id).addEventListener("change",()=>{searchVersion++;$("results").replaceChildren();if(id==="start-month")$("window").value="custom";else syncRange();if(customerId!=null)loadProfile(customerId);});
+for(const id of ["month","window","start-month"]) $(id).addEventListener("change",()=>{searchVersion++;$("results").replaceChildren();if(id==="start-month")$("window").value="custom";else syncRange();if(customerId!=null)loadProfile(customerId,{focusMetrics:id==="month"});});
 $("download").addEventListener("click",()=>{if(!profile)return;const url=URL.createObjectURL(new Blob([JSON.stringify(profile,null,2)],{type:"application/json"}));const a=el("a");a.href=url;a.download=`customer-${profile.customer_id}-${profile.as_of_month}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 (async()=>{try{
   metadata=await api("/api/meta"); $("scope").textContent=`${fmt(metadata.customer_count)} khách · ${metadata.months[0]} → ${metadata.latest_month}`;

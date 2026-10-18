@@ -53,12 +53,18 @@ cụm gần nhất sau preprocessing và hiển thị đặc điểm cohort cùn
 quy tắc F/số SP cùng số liệu cụ thể của khách, ví dụ P5 = F≥2 và 2–4 SP.
 Hai mã C/P mô tả hai góc nhìn song song, không phải điểm đánh giá khách.
 
-Đổi **từ tháng** chỉ đổi cửa sổ quan sát, không tính lại F hoặc nhãn persona.
-Đổi **đến tháng / góc nhìn** đổi thời điểm đánh giá toàn bộ hồ sơ. Ví dụ chọn
+Đổi **Lịch sử từ tháng** chỉ đổi cửa sổ quan sát, không tính lại F hoặc nhãn persona.
+Đổi **Tháng chấm điểm** (tháng kết thúc) đổi thời điểm đánh giá toàn bộ hồ sơ. Ví dụ chọn
 2015-03 → 2016-05 để xem 15 tháng. Chọn nhanh tự điều chỉnh tháng bắt đầu;
 khoảng tùy chọn giữ tháng bắt đầu khi đổi tháng kết thúc nếu vẫn hợp lệ. Nếu
 tháng kết thúc lùi trước tháng bắt đầu, UI thu khoảng về 1 tháng để tránh đảo
 ngược thời gian. URL lưu số tháng thực tế và preset để phục hồi bộ lọc khi tải lại.
+
+Ngay trên thẻ có tiêu đề **Điểm tại tháng YYYY-MM · Khách #ID**. Bấm mã tháng
+trong bảng lịch sử để chọn tháng chấm điểm; dashboard tải lại đúng snapshot,
+CLV, lifecycle và persona tại tháng ấy rồi cuộn lên khu vực điểm. Không refit
+mô hình theo cửa sổ xem. Đổi tháng vẫn có thể giữ cùng R/F/lifecycle nếu hành
+vi khách không đổi; điều đó không có nghĩa dữ liệu bị cache từ tháng khác.
 
 Biểu đồ không nối qua tháng thiếu/vắng; bảng có R/F/M, số SP, CLV, lifecycle,
 persona C/P và số SP mở/rời. Hover ô mở/rời để xem tên SP. Nút JSON tải hồ sơ
