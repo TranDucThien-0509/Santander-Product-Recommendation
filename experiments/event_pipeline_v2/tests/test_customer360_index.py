@@ -86,6 +86,24 @@ class IndexedCustomerContracts(unittest.TestCase):
         self.assertFalse(self.store.snapshot(1,"2020-01")["historical_deceased"])
         self.assertTrue(self.store.snapshot(1,"2020-03")["historical_deceased"])
 
+    def test_build_rejects_lifecycle_key_mismatch_with_equal_row_count(self):
+        path=self.source/"lifecycle"/"2020-02.parquet"
+        original=path.read_bytes()
+        try:
+            for case in ["customer_id","observed_flag","partition_month"]:
+                with self.subTest(case=case):
+                    frame=pd.read_parquet(path)
+                    if case=="customer_id": frame.loc[frame.customer_id.eq(2),"customer_id"]=99
+                    elif case=="observed_flag":
+                        frame.loc[frame.customer_id.eq(1),"is_observed"]=True
+                        frame.loc[frame.customer_id.eq(2),"is_observed"]=False
+                    else: frame["month"]="2020-01"
+                    frame.to_parquet(path,index=False)
+                    with self.assertRaisesRegex(ValueError,"membership differ"):
+                        build_index(self.source,self.raw,self.root/f"invalid-{case}.duckdb")
+                    path.write_bytes(original)
+        finally: path.write_bytes(original)
+
     def test_monthly_pagination_search_and_unknown_are_preserved(self):
         for month in self.store.months:
             self.assertEqual(self.store.acquisitions(month),self.small.acquisitions(month))

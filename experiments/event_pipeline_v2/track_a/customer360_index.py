@@ -172,6 +172,7 @@ def build_index(source_run, raw_csv, destination, expected_crc32c=None):
             # deceased gates use the first flag <= origin, never a future flag.
             connection.execute(f"""CREATE OR REPLACE TEMP TABLE current_base AS
                 SELECT l.customer_id, l.month, l.is_observed, l.missing_months,
+                    f.customer_id IS NOT NULL AS source_feature_present,
                     l.lifecycle presence_lifecycle, coalesce(f.product_complete,false) AND l.is_observed product_complete,
                     s.indfall, s.activity, coalesce(s.indfall IN ('S','N') AND s.activity IN ('0','1'),false) status_known,
                     coalesce(d.first_deceased<=l.month,false) historical_deceased,
@@ -195,14 +196,17 @@ def build_index(source_run, raw_csv, destination, expected_crc32c=None):
                 LEFT JOIN deceased d ON d.customer_id=l.customer_id""")
             if connection.execute("SELECT count(*)-count(DISTINCT customer_id) FROM current_base").fetchone()[0]:
                 raise ValueError("Duplicate lifecycle customer-month")
-            if connection.execute("SELECT count(*) FROM current_base WHERE is_observed").fetchone()[0] != connection.execute("SELECT count(*) FROM features WHERE month=?",[month]).fetchone()[0]:
+            key_mismatches, observed_count = connection.execute("""SELECT
+                count(*) FILTER(WHERE is_observed IS DISTINCT FROM source_feature_present OR month IS DISTINCT FROM ?),
+                count(*) FILTER(WHERE is_observed) FROM current_base""", [month]).fetchone()
+            if key_mismatches or observed_count != connection.execute("SELECT count(*) FROM features WHERE month=?",[month]).fetchone()[0]:
                 raise ValueError("Observed lifecycle and feature membership differ")
             connection.execute("""CREATE OR REPLACE TEMP TABLE peers AS SELECT customer_id,
                 (rank() OVER(ORDER BY clv_1m)+(count(*) OVER(PARTITION BY clv_1m)-1)/2.0-.5)
                 /count(*) OVER()*100 clv_peer_percentile, count(*) OVER() clv_peer_n FROM current_base
                 WHERE cross_sell_eligible AND clv_1m IS NOT NULL AND observed_pairs>=3""")
             peer_n = connection.execute("SELECT count(*) FROM peers").fetchone()[0]
-            sql = "SELECT b.*,p.clv_peer_percentile,?::BIGINT clv_peer_n FROM current_base b LEFT JOIN peers p USING(customer_id) ORDER BY b.customer_id"
+            sql = "SELECT b.* EXCLUDE(source_feature_present),p.clv_peer_percentile,?::BIGINT clv_peer_n FROM current_base b LEFT JOIN peers p USING(customer_id) ORDER BY b.customer_id"
             connection.execute(("CREATE TABLE snapshots AS " if month == months[0] else "INSERT INTO snapshots ")+sql, [peer_n])
             connection.execute("CHECKPOINT")
         connection.execute("DROP TABLE flags; DROP TABLE features; DROP TABLE deceased")

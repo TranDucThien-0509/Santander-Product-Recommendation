@@ -83,6 +83,9 @@ completed v2 run được ghi trong [CLOUD_RUNS.md](CLOUD_RUNS.md).
 CRC32C raw local khớp receipt object nguồn. Đã mở hồ sơ một khách ngoài
 sample 10k cũ, xác minh 17 tháng, mask sở hữu, trang 1/2 không trùng khách và
 đối chiếu tổng snapshot với full run. Dashboard tại cổng 8501 đã dùng index này.
+Lần rà soát bổ sung đối chiếu ID quan sát với feature của cả 17 partition,
+không có mismatch. Builder kiểm tra membership theo khóa, cờ quan sát và
+tháng partition, không chỉ so số dòng hai tập.
 
 Một lượt API smoke test sau build: hồ sơ 17 tháng 143 ms, bảng tháng 43,4 ms,
 tìm khách 16,1 ms; hồ sơ lặp lại 2,5 ms. Đây là một lần đo local với cache hệ
@@ -230,12 +233,13 @@ lọc/phân trang và bất biến khi dữ liệu tháng tương lai đổi. HT
 thêm hai endpoint cùng validation tháng/trang/mã lọc.
 Không cần raw thật cho CI.
 
-5 contract tests cho index: snapshot/profile/search/monthly pagination tương
+6 contract tests cho index: snapshot/profile/search/monthly pagination tương
 đương store cũ; affinity khớp công thức pipeline; không dùng cờ deceased tương
 lai; kiểm tra lỗi checksum và audit có nhãn tương lai; HTTP đồng thời trên
-store chỉ đọc. Thêm 3 test affinity tháng trước: đúng origin dù window=1,
+store chỉ đọc và chặn lệch ID/cờ quan sát/tháng partition dù số dòng bằng nhau.
+Thêm 3 test affinity tháng trước: đúng origin dù window=1,
 mask theo sở hữu trước sự kiện, giữ gates lịch sử và không gán outcome thiếu
-bằng false. Tổng 23 tests.
+bằng false. Tổng 24 tests.
 
 ### Diễn biến trước lượt mở
 
