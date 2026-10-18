@@ -122,7 +122,7 @@ async function loadProfile(id, {focusMetrics=false} = {}) {
     if(version!==requestVersion)return;
     profile=p; customerId=p.customer_id; $("customer").value=String(customerId); render(p); status(`Đã tổng hợp hồ sơ #${id} tại ${p.as_of_month}.`);
     if(focusMetrics)$("metric-month").scrollIntoView({behavior:"smooth",block:"start"});
-    history.replaceState(null,"",`/?${new URLSearchParams({id,month:p.as_of_month,window:p.window,preset:$("window").value})}`);
+    updateDashboardLocation();
   } catch(e) { if(version===requestVersion) status(e.message,true); }
   finally {if(version===requestVersion) $("search-form").querySelector("button").disabled=false;}
 }
@@ -140,5 +140,6 @@ $("download").addEventListener("click",()=>{if(!profile)return;const url=URL.cre
   const requested=Number(args.get("window")||6), end=metadata.months.indexOf($("month").value);
   $("window").value=["6","12","24","custom"].includes(args.get("preset")) ? args.get("preset") : [6,12,24].includes(requested) ? String(requested) : "custom";
   syncRange(metadata.months[Math.max(0,end-(Number.isInteger(requested)&&requested>=1&&requested<=24?requested:6)+1)]);
+  if(await initializeAcquisitionView(args))return;
   if(/^\d{1,12}$/.test(args.get("id")||""))await loadProfile(args.get("id")); else if(metadata.examples.length)await loadProfile(metadata.examples[0].customer_id);
 }catch(e){status("Không kết nối được dữ liệu: "+e.message,true);}})();

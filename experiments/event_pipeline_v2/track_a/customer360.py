@@ -174,6 +174,66 @@ class CustomerStore:
                     source_run=self.source_name, customer_count=len(self.lifecycles[self.months[-1]]),
                     policy_version=POLICY_VERSION)
 
+    @lru_cache(maxsize=18)
+    def acquisition_month(self, month):
+        """Product 0->1 transitions for complete consecutive observed pairs.
+
+        Return immutable customer/product tuples so pagination never mutates the
+        cached month. First observations and gaps are not acquisition events.
+        """
+        if month not in self.months:
+            raise ValueError("Tháng không nằm trong bộ dữ liệu")
+        current = self.frames[month]
+        previous_month = shift(month, -1)
+        summary = dict(month=month, previous_month=previous_month,
+                       observed_customers=len(current), available=False,
+                       eligible_pairs=None, unverified_customers=len(current),
+                       customers_opened=None, product_openings=None,
+                       note="Chưa có snapshot tháng liền trước để xác định lượt mở.")
+        if previous_month not in self.frames:
+            return summary, ()
+        previous = self.frames[previous_month]
+        ids = current.index.intersection(previous.index)
+        complete = (current.loc[ids, "product_complete"].eq(1)
+                    & previous.loc[ids, "product_complete"].eq(1)
+                    & current.loc[ids, PRODUCTS].notna().all(axis=1)
+                    & previous.loc[ids, PRODUCTS].notna().all(axis=1))
+        ids = ids[complete]
+        opened = (previous.loc[ids, PRODUCTS].eq(0) & current.loc[ids, PRODUCTS].eq(1))
+        counts = opened.sum(axis=1)
+        customers = tuple(sorted(
+            ((int(cid), tuple(p for p in PRODUCTS if opened.loc[cid, p]))
+             for cid in counts.index[counts.gt(0)]),
+            key=lambda item: (-len(item[1]), item[0])))
+        summary.update(available=bool(len(ids)), eligible_pairs=len(ids),
+                       unverified_customers=len(current)-len(ids),
+                       customers_opened=len(customers) if len(ids) else None,
+                       product_openings=int(counts.sum()) if len(ids) else None,
+                       note="Lượt mở là thay đổi 0→1 giữa hai snapshot tháng liên tiếp đầy đủ; có thể gồm mở lại sản phẩm."
+                       if len(ids) else "Không có cặp snapshot đầy đủ để xác định lượt mở trong tháng.")
+        return summary, customers
+
+    def acquisition_summary(self):
+        return dict(months=[self.acquisition_month(m)[0] for m in self.months],
+                    scope=self.scope, source_run=self.source_name)
+
+    def acquisitions(self, month, query="", page=1, page_size=25):
+        if query and (not query.isascii() or not query.isdigit() or len(query) > 12):
+            raise ValueError("Mã khách lọc phải là chữ số, tối đa 12 ký tự")
+        if type(page) is not int or page < 1 or type(page_size) is not int or not 1 <= page_size <= 100:
+            raise ValueError("Trang hoặc số dòng mỗi trang không hợp lệ")
+        summary, customers = self.acquisition_month(month)
+        matches = [item for item in customers if str(item[0]).startswith(query)]
+        pages = max(1, (len(matches)+page_size-1)//page_size)
+        if page > pages:
+            raise ValueError("Trang vượt quá số kết quả")
+        rows = [dict(customer_id=cid, opening_count=len(products),
+                     products=[dict(code=p, name=PRODUCT_NAMES[p]) for p in products])
+                for cid, products in matches[(page-1)*page_size:page*page_size]]
+        return dict(summary=summary, rows=rows, query=query, page=page, page_size=page_size,
+                    total_customers=len(matches), total_pages=pages,
+                    filtered_product_openings=sum(len(p) for _, p in matches))
+
     def search(self, query, month):
         cohort = self.cohort(month)
         ids = sorted(int(i) for i in cohort.index if str(i).startswith(query))[:30]

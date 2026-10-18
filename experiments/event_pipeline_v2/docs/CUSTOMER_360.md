@@ -5,6 +5,32 @@ hoặc chọn nhanh 6 / 12 / toàn bộ lịch sử (tối đa 24 tháng). Khôn
 web framework hoặc gọi dịch vụ AI.
 Giao diện tiếng Việt, biểu đồ SVG; không tải tài nguyên từ CDN.
 
+## Khám phá lượt mở theo tháng
+
+Trong cùng trang, chọn tab **Mở sản phẩm theo tháng**:
+
+1. Bấm tháng trong bảng tổng hợp để xem số khách có mở thêm SP, tổng lượt mở
+   và số khách đủ cặp snapshot để so sánh.
+2. Bảng chi tiết có một dòng cho mỗi khách mở SP trong tháng, số SP mở thêm và
+   tên từng SP. Sắp số SP giảm dần, rồi mã khách tăng dần; có lọc theo tiền tố
+   mã khách và phân trang 25 khách/trang.
+3. Bấm mã khách để mở hồ sơ Customer 360, tự chọn **tháng ghi nhận sự kiện** làm
+   tháng chấm điểm. Nút **Trở lại lượt mở tháng…** quay về danh sách đó.
+
+Lượt mở = cờ sở hữu **0→1** ở cặp tháng liên tiếp, cả hai snapshot đủ 24 cột
+sở hữu. Một khách mở 2 SP được tính là 1 khách, 2 lượt. Có thể gồm mở lại SP.
+Khách chỉ xuất hiện lần đầu, vắng tháng trước, hoặc thiếu ownership không được
+gán lượt mở từ 0 giả định. Tháng đầu dataset (hoặc tháng không có cặp hợp lệ)
+hiển thị chưa xác định, không biến thành một tháng 0 lượt. Bảng là quan sát
+snapshot trên sample; không phải xác nhận giao dịch hay danh sách đủ điều kiện
+marketing. Các cờ activity/indfall vẫn được kiểm tra riêng khi mở hồ sơ.
+
+API local `GET /api/acquisitions/summary` trả tổng hợp từng tháng;
+`GET /api/acquisitions?month=YYYY-MM&q=...&page=1&page_size=25` trả khách có sự
+kiện. Summary là toàn tháng; số khách kết quả/phân trang theo mã lọc. Chế độ xem
+và tháng sự kiện lưu trong URL để phục hồi khi tải lại; không truyền dữ liệu ra
+dịch vụ ngoài.
+
 ## Chạy
 
 Từ `experiments/event_pipeline_v2`, với environment đã cài `requirements-track-a.txt`:
@@ -133,10 +159,14 @@ cho từng khách ở dashboard; không nhân CLV 1m với 6 để thay thế.
 python -m unittest discover -s tests -p test_customer360.py -v
 ```
 
-11 synthetic contract tests: không dùng tháng tương lai, hồ sơ không xuất cụm C,
+15 synthetic contract tests: không dùng tháng tương lai, hồ sơ không xuất cụm C,
 absence/null và cặp sự kiện bị đứt, ownership mask, activity/death/unknown gates,
 midrank ties, invalid CLV, policy thresholds, cờ deceased trong lịch sử và
 HTTP no-store/Host/Origin/validation.
 Hai test bổ sung kiểm tra thông tin khách đúng tháng và dữ liệu thiếu không
 thành 0, không điền thông tin từ khách khác hoặc tháng tương lai.
+4 test lượt mở kiểm tra nhiều SP trên một khách, đối chiếu với profile cùng
+tháng, loại bỏ gap/first-seen/incomplete, chưa xác định khi thiếu toàn bộ cặp,
+lọc/phân trang và bất biến khi dữ liệu tháng tương lai đổi. HTTP test kiểm tra
+thêm hai endpoint cùng validation tháng/trang/mã lọc.
 Không cần raw thật cho CI.

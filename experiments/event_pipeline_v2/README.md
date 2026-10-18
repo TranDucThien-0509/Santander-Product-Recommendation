@@ -168,4 +168,8 @@ JSON về máy. Không xuất đề xuất cho khách vắng/inactive/indfall=S/
 không dùng tháng tương lai hoặc xuất cụm C trong hồ sơ. Bản đang dùng sample 10k,
 không kết luận ROI hoặc lợi nhuận dài hạn. Xem [cách chạy và chính sách](docs/CUSTOMER_360.md).
 
+Tab **Mở sản phẩm theo tháng** tổng hợp khách/lượt mở từ các cặp snapshot đầy
+đủ, có lọc mã khách và phân trang. Bấm tháng → xem sản phẩm mở thêm → bấm khách
+để vào hồ sơ đúng tháng, có nút quay lại danh sách.
+
 Xem [audit từng yêu cầu](../../research/track_a/docs/TRACK_A_AUDIT.md), [cách tái chạy và S3 export](../../research/track_a/docs/REPRODUCE.md), [báo cáo sample thực tế](../../research/track_a/reports/sample_10k/TRACK_A_REPORT.md) và [notebook demo](../../research/track_a/notebooks/16_track_a_review.ipynb). Bộ notebook nghiên cứu cũ, benchmark aggregate có provenance và 6 persona card đã được đưa vào `research/track_a/`; không trộn kết quả đó với full-cloud recommendation benchmark.

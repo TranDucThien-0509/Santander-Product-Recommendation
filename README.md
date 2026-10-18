@@ -7,6 +7,8 @@ chạy local: RFM, lifecycle, CLV-proxy 1m, affinity, thông tin khách, nhóm h
 ưu tiên chăm sóc. Chọn mã khách, khoảng từ tháng → đến tháng hoặc 6/12/toàn bộ
 lịch sử, xem thông tin cá nhân và giải thích nhóm hành vi P theo hai cột, tải JSON. Bản hiện
 dùng sample 10k; mức ưu tiên là heuristic thử nghiệm, chưa phải kết luận ROI.
+Tab **Mở sản phẩm theo tháng** cho xem lượt mở và khách có sự kiện theo tháng;
+bấm mã khách để chuyển thẳng sang hồ sơ tại tháng ghi nhận đó.
 
 Bộ nghiên cứu Track A nằm tại [`research/track_a/`](research/track_a/README.md):
 notebook RFM quantile/KMeans/rule, lifecycle, CLV BG/NBD + Gamma-Gamma/ML,

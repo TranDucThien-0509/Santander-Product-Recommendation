@@ -45,6 +45,65 @@ class Customer360Contracts(unittest.TestCase):
         self.args = fixture()
         self.store = CustomerStore(*self.args)
 
+    def event_store(self):
+        frames = self.args[0]
+        frames["2020-02"].loc[2,PRODUCTS[1:3]] = 1
+        frames["2020-02"].loc[3,PRODUCTS[3]] = 1
+        frames["2020-03"].loc[3,PRODUCTS[4]] = 1
+        # Returning, first-seen and incomplete customers do not define pairs.
+        frames["2020-03"].loc[1,PRODUCTS[4]] = 1
+        frames["2020-03"].loc[6,PRODUCTS[4]] = 1
+        frames["2020-03"].loc[5,PRODUCTS[5]] = 1
+        for frame in frames.values():
+            frame["n_products"] = frame[PRODUCTS].sum(axis=1)
+        return CustomerStore(*self.args)
+
+    def test_monthly_openings_count_products_and_distinct_customers(self):
+        store = self.event_store()
+        first = store.acquisitions("2020-01")
+        self.assertFalse(first["summary"]["available"])
+        self.assertIsNone(first["summary"]["product_openings"])
+        feb = store.acquisitions("2020-02")
+        self.assertEqual(feb["summary"]["customers_opened"],2)
+        self.assertEqual(feb["summary"]["product_openings"],3)
+        self.assertEqual([r["customer_id"] for r in feb["rows"]],[2,3])
+        # Observed events include unknown/inactive status, unlike marketing eligibility.
+        for r in feb["rows"]:
+            snapshot = store.profile(r["customer_id"],"2020-02")["current"]
+            self.assertEqual([p["code"] for p in r["products"]],snapshot["acquired"])
+
+    def test_openings_exclude_gaps_new_customers_and_incomplete_pairs(self):
+        store = self.event_store()
+        march = store.acquisitions("2020-03")
+        self.assertEqual(march["summary"]["product_openings"],1)
+        self.assertEqual([r["customer_id"] for r in march["rows"]],[3])
+        self.assertEqual(march["rows"][0]["products"][0]["code"],PRODUCTS[4])
+        self.args[0]["2020-03"]["product_complete"] = 0
+        unknown = CustomerStore(*self.args).acquisitions("2020-03")["summary"]
+        self.assertFalse(unknown["available"])
+        self.assertIsNone(unknown["product_openings"])
+
+    def test_openings_filter_pagination_and_validation(self):
+        store = self.event_store()
+        a = store.acquisitions("2020-02",page=1,page_size=1)
+        b = store.acquisitions("2020-02",page=2,page_size=1)
+        self.assertEqual(a["total_pages"],2)
+        self.assertEqual(a["rows"][0]["customer_id"],2)
+        self.assertEqual(b["rows"][0]["customer_id"],3)
+        filtered = store.acquisitions("2020-02",query="3")
+        self.assertEqual(filtered["total_customers"],1)
+        self.assertEqual(filtered["filtered_product_openings"],1)
+        self.assertEqual(filtered["summary"]["product_openings"],3)
+        for kwargs in [dict(query="bad"),dict(page=0),dict(page=999),dict(page_size=101)]:
+            with self.assertRaises(ValueError):
+                store.acquisitions("2020-02",**kwargs)
+
+    def test_future_changes_do_not_change_monthly_events(self):
+        store = self.event_store()
+        before = store.acquisitions("2020-02")
+        self.args[0]["2020-03"][PRODUCTS] = 1
+        self.assertEqual(before,CustomerStore(*self.args).acquisitions("2020-02"))
+
     def test_future_month_mutations_do_not_change_as_of_profile(self):
         before = self.store.profile(1, "2020-01", 6)
         other = copy.deepcopy(self.args)
@@ -163,6 +222,10 @@ class Customer360Contracts(unittest.TestCase):
             with urlopen(base+"/api/profile?id=1&month=2020-03") as response:
                 self.assertEqual(response.headers["Cache-Control"], "no-store")
                 self.assertEqual(json.load(response)["customer_id"], 1)
+            with urlopen(base+"/api/acquisitions/summary") as response:
+                self.assertEqual(len(json.load(response)["months"]),3)
+            with urlopen(base+"/api/acquisitions?month=2020-03") as response:
+                self.assertEqual(json.load(response)["summary"]["month"],"2020-03")
             for path, headers, expected in [
                 ("/api/meta", {"Host": "attacker.example"}, 403),
                 ("/api/meta", {"Origin": "https://attacker.example"}, 403),
@@ -170,6 +233,10 @@ class Customer360Contracts(unittest.TestCase):
                 ("/api/profile?id=999&month=2020-03", {}, 404),
                 ("/api/profile?id=1&window=999", {}, 400),
                 ("/api/profile?id=not-a-number", {}, 400),
+                ("/api/acquisitions?month=2020-04", {}, 400),
+                ("/api/acquisitions?page=0", {}, 400),
+                ("/api/acquisitions?page_size=101", {}, 400),
+                ("/api/acquisitions?q=bad", {}, 400),
             ]:
                 with self.assertRaises(HTTPError) as error:
                     urlopen(Request(base+path, headers=headers))

@@ -46,6 +46,11 @@ def handler_for(store):
                 month = args.get("month", [store.months[-1]])[0]
                 if url.path == "/api/meta":
                     return self.json(200, dict(**store.metadata(), examples=store.examples(store.months[-1])))
+                if url.path == "/api/acquisitions/summary":
+                    return self.json(200, store.acquisition_summary())
+                if url.path == "/api/acquisitions":
+                    return self.json(200, store.acquisitions(month, args.get("q", [""])[0],
+                        int(args.get("page", ["1"])[0]), int(args.get("page_size", ["25"])[0])))
                 if url.path == "/api/customers":
                     query = args.get("q", [""])[0]
                     if not query.isascii() or not query.isdigit() or len(query) > 12:
@@ -58,6 +63,7 @@ def handler_for(store):
                     return self.json(200, store.profile(int(raw_id), month, int(args.get("window", ["6"])[0])))
                 assets = {"/": ("index.html", "text/html; charset=utf-8"),
                           "/app.js": ("app.js", "application/javascript; charset=utf-8"),
+                          "/acquisitions.js": ("acquisitions.js", "application/javascript; charset=utf-8"),
                           "/style.css": ("style.css", "text/css; charset=utf-8")}
                 if url.path not in assets:
                     return self.json(404, {"error": "Không tìm thấy"})
