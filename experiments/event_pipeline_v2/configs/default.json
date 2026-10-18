@@ -1,0 +1,48 @@
+{
+  "data": {
+    "train_csv_or_zip": "/gcs/YOUR_BUCKET/raw/train_ver2.csv.zip",
+    "prediction_roster_csv_or_zip": null,
+    "work_dir": "/gcs/YOUR_BUCKET/runs/event_v2",
+    "history_start": "2015-01",
+    "forecast_month": "2016-05",
+    "chunk_size": 400000,
+    "rebuild_cache": false
+  },
+  "split": {
+    "train_origins": ["2015-12", "2016-01", "2016-02"],
+    "validation_origins": ["2016-03"],
+    "test_origins": ["2016-04"]
+  },
+  "feature_groups": {
+    "rfm": true,
+    "clv": true,
+    "persona": true,
+    "lifecycle": true,
+    "affinity": true
+  },
+  "meta_models": {
+    "clv_max_train_rows": 150000,
+    "clv_max_iter": 80,
+    "clv_min_train_rows": 1000,
+    "clv_min_history_origin": "2015-03",
+    "persona_rules_available_from": "2015-12",
+    "persona_rules_fit_origin": "2015-11",
+    "persona_rules_label_month": "2015-12",
+    "affinity_window_months": 3,
+    "affinity_prior": 1000.0
+  },
+  "model": {
+    "backend": "xgboost",
+    "max_train_event_rows": 500000,
+    "n_estimators": 200,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "n_jobs": 4,
+    "seed": 42
+  },
+  "run": {
+    "name": "all_features",
+    "refit_for_forecast": true,
+    "ablation": false
+  }
+}

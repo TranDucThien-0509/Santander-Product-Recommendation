@@ -1,0 +1,21 @@
+# CustomJobSpec for gcloud ai custom-jobs create --config.
+# Replace PROJECT_ID, REPOSITORY and IMAGE_TAG; use the same region as the image.
+scheduling:
+  timeout: 7200s
+  restartJobOnWorkerRestart: false
+workerPoolSpecs:
+  - machineSpec:
+      machineType: n1-standard-8
+    replicaCount: 1
+    diskSpec:
+      bootDiskType: pd-ssd
+      bootDiskSizeGb: 200
+    containerSpec:
+      imageUri: us-central1-docker.pkg.dev/PROJECT_ID/REPOSITORY/santander-event:IMAGE_TAG
+      command: ["python", "-m", "pipeline.run_pipeline"]
+      args: ["--config", "/gcs/YOUR_BUCKET/configs/event-v2.json"]
+      env:
+        - name: OMP_NUM_THREADS
+          value: "4"
+        - name: OPENBLAS_NUM_THREADS
+          value: "4"
