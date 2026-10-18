@@ -45,6 +45,41 @@ class Customer360Contracts(unittest.TestCase):
         self.args = fixture()
         self.store = CustomerStore(*self.args)
 
+    def test_previous_affinity_uses_exact_prior_month_even_with_one_month_window(self):
+        frames, _, flags = self.args[:3]
+        flags.loc[flags.customer_id.eq(2),"ind_actividad_cliente"] = "1"
+        frames["2020-02"].loc[2,"affinity_"+PRODUCTS[1]] = .9
+        frames["2020-02"].loc[2,"affinity_"+PRODUCTS[2]] = .8
+        frames["2020-02"].loc[2,"affinity_"+PRODUCTS[0]] = 99  # Already owned in prior month.
+        frames["2020-03"].loc[2,PRODUCTS[1]] = 1
+        frames["2020-03"].loc[2,"affinity_"+PRODUCTS[2]] = 999  # Not a historical score.
+        store = CustomerStore(*self.args)
+        profile = store.profile(2,"2020-03",window=1)
+        prior = profile["previous_affinity"]
+        self.assertEqual(len(profile["timeline"]),1)
+        self.assertEqual(prior["as_of_month"],"2020-02")
+        self.assertEqual(prior["target_month"],"2020-03")
+        self.assertTrue(prior["available"])
+        self.assertEqual(prior["recommendations"][0],dict(product=PRODUCTS[1],name=profile["product_names"][PRODUCTS[1]],score=.9,acquired_in_target=True))
+        self.assertFalse(prior["recommendations"][1]["acquired_in_target"])
+        self.assertNotIn(PRODUCTS[0],[r["product"] for r in prior["recommendations"]])
+
+    def test_previous_affinity_missing_outcome_is_not_a_failed_opening(self):
+        prior = self.store.profile(1,"2020-02",window=1)["previous_affinity"]
+        self.assertTrue(prior["available"])
+        self.assertFalse(prior["outcomes_available"])
+        self.assertTrue(all(r["acquired_in_target"] is None for r in prior["recommendations"]))
+
+    def test_previous_affinity_preserves_prior_month_gates_and_missing_history(self):
+        for customer_id in [1,2,3,4,5]:
+            prior = self.store.profile(customer_id,"2020-03")["previous_affinity"]
+            self.assertFalse(prior["available"])
+            self.assertEqual(prior["recommendations"],[])
+        first = self.store.profile(1,"2020-01")["previous_affinity"]
+        self.assertFalse(first["available"])
+        new = self.store.profile(6,"2020-03")["previous_affinity"]
+        self.assertFalse(new["available"])
+
     def event_store(self):
         frames = self.args[0]
         frames["2020-02"].loc[2,PRODUCTS[1:3]] = 1

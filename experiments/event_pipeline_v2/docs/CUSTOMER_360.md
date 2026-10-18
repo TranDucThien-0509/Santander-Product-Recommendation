@@ -218,7 +218,7 @@ cho từng khách ở dashboard; không nhân CLV 1m với 6 để thay thế.
 python -m unittest discover -s tests -p 'test_customer360*.py' -v
 ```
 
-15 synthetic contract tests: không dùng tháng tương lai, hồ sơ không xuất cụm C,
+18 synthetic contract tests: không dùng tháng tương lai, hồ sơ không xuất cụm C,
 absence/null và cặp sự kiện bị đứt, ownership mask, activity/death/unknown gates,
 midrank ties, invalid CLV, policy thresholds, cờ deceased trong lịch sử và
 HTTP no-store/Host/Origin/validation.
@@ -233,7 +233,9 @@ Không cần raw thật cho CI.
 5 contract tests cho index: snapshot/profile/search/monthly pagination tương
 đương store cũ; affinity khớp công thức pipeline; không dùng cờ deceased tương
 lai; kiểm tra lỗi checksum và audit có nhãn tương lai; HTTP đồng thời trên
-store chỉ đọc. Tổng 20 tests.
+store chỉ đọc. Thêm 3 test affinity tháng trước: đúng origin dù window=1,
+mask theo sở hữu trước sự kiện, giữ gates lịch sử và không gán outcome thiếu
+bằng false. Tổng 23 tests.
 
 ### Diễn biến trước lượt mở
 
@@ -247,3 +249,16 @@ Nút “Xem toàn bộ diễn biến đến tháng này” dẫn tới biểu đ
 Không đưa tháng sau sự kiện vào nhận định này. Nếu người dùng thu hẹp khoảng
 xem còn một tháng, khối đối chiếu báo chưa có tháng trước trong khoảng xem;
 không dùng snapshot gần nhất để lấp tháng vắng hoặc tự suy diễn giao dịch ngày.
+
+Khối **Affinity tháng trước** lấy top 5 sản phẩm chưa sở hữu tại đúng tháng
+liền trước, cùng điểm affinity được tính đến tháng đó. Ví dụ, xem 2016-05
+thì hiển thị affinity tại 2016-04 và đối chiếu với các lượt mở ghi nhận trong
+2016-05. Không lấy affinity tháng 5 để diễn giải ngược về tháng 4. Phần này
+vẫn lấy được tháng trước khi cửa sổ biểu đồ chỉ còn một tháng.
+
+Điều kiện hiển thị đề xuất được kiểm tra ở tháng trước (activity/indfall,
+ownership, CLV hợp lệ và tối thiểu 3 cặp tháng), giống đề xuất hiện tại.
+Nếu chưa đủ điều kiện, hiển thị lý do. Outcome là có/không ghi nhận mở trong
+cặp snapshot đầy đủ; thiếu cặp thì “Chưa đối chiếu được”. Đây không phải xác
+suất mua hoặc metric đánh giá toàn mô hình. API và JSON export chứa trường
+`previous_affinity` với origin, target month, điểm và outcome riêng từng SP.

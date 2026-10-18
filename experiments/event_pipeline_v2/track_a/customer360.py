@@ -292,14 +292,7 @@ class CustomerStore:
         timeline = [self.snapshot(customer_id, m) for m in months]
         current = timeline[-1]
         policy = care_policy(current)
-        recommendations = []
-        if current["cross_sell_eligible"] and (current["observed_pairs"] or 0) >= 3 and current["clv_1m"] is not None:
-            row = self.feature_row(customer_id, month)
-            for p in PRODUCTS:
-                score = scalar(row.get("affinity_" + p))
-                if row[p] == 0 and score is not None and np.isfinite(score) and score > 0:
-                    recommendations.append(dict(product=p, name=PRODUCT_NAMES[p], score=float(score)))
-            recommendations.sort(key=lambda r: (-r["score"], r["product"]))
+        recommendations = self.affinity_recommendations(customer_id, month, current)
         customer_row = self.feature_row(customer_id, month) if current["is_observed"] else {}
         customer_demographics = {name: scalar(customer_row.get(col)) for col, name in [
             ("age", "age"), ("renta", "income"), ("antiguedad", "tenure"),
@@ -335,6 +328,7 @@ class CustomerStore:
                     persona_description=RULE_PERSONAS.get(current["persona_rule"], "Chưa đủ điều kiện gán persona rule"),
                     customer_demographics=customer_demographics,
                     recommendations=recommendations[:5], product_names=PRODUCT_NAMES,
+                    previous_affinity=self.previous_affinity(customer_id, month, current),
                     evidence=dict(label=evidence, observed_pairs=history_pairs, gap_months=gaps,
                                   meaning="Mức đầy đủ dữ liệu, không phải xác suất dự báo đúng."),
                     insights=insights, forecast_month=shift(month, 1),
@@ -349,3 +343,36 @@ class CustomerStore:
 
     def feature_row(self, customer_id, month):
         return self.frames[month].loc[customer_id]
+
+    def affinity_recommendations(self, customer_id, month, snapshot):
+        recommendations = []
+        if snapshot.get("cross_sell_eligible") and (snapshot.get("observed_pairs") or 0) >= 3 and snapshot.get("clv_1m") is not None:
+            row = self.feature_row(customer_id, month)
+            for p in PRODUCTS:
+                score = scalar(row.get("affinity_" + p))
+                if row[p] == 0 and score is not None and np.isfinite(score) and score > 0:
+                    recommendations.append(dict(product=p, name=PRODUCT_NAMES[p], score=float(score)))
+            recommendations.sort(key=lambda r: (-r["score"], r["product"]))
+        return recommendations[:5]
+
+    def previous_affinity(self, customer_id, month, current):
+        previous_month = shift(month, -1)
+        result = dict(as_of_month=previous_month, target_month=month, available=False,
+                      recommendations=[], outcomes_available=current["acquired"] is not None)
+        if previous_month not in self.months:
+            result["reason"] = "Chưa có snapshot tháng trước trong bộ dữ liệu."
+            return result
+        previous = self.snapshot(customer_id, previous_month)
+        if not previous["known"]:
+            result["reason"] = "Khách chưa xuất hiện ở tháng trước."
+            return result
+        recommendations = self.affinity_recommendations(customer_id, previous_month, previous)
+        if not recommendations:
+            eligible = previous["cross_sell_eligible"] and (previous.get("observed_pairs") or 0) >= 3 and previous["clv_1m"] is not None
+            result["reason"] = "Không có điểm affinity dương hợp lệ cho sản phẩm chưa sở hữu." if eligible else care_policy(previous)["reasons"][0]
+            return result
+        for recommendation in recommendations:
+            recommendation["acquired_in_target"] = recommendation["product"] in current["acquired"] if result["outcomes_available"] else None
+        result.update(available=True, recommendations=recommendations,
+                      reason="Xếp hạng từ dữ liệu đến tháng trước, chỉ gồm sản phẩm chưa sở hữu tại tháng đó. Điểm affinity không phải xác suất mua.")
+        return result

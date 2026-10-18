@@ -46,6 +46,14 @@ class IndexedCustomerContracts(unittest.TestCase):
             q.to_parquet(cls.cache/f"{month}.parquet",index=False)
             l=life[month].reset_index(); l["month"]=month
             l.to_parquet(cls.source/"lifecycle"/f"{month}.parquet",index=False)
+        # The sample store reads persisted scores; the index recomputes them.
+        # Give both the same causal formula for full profile parity.
+        affinity_config=dict(data=dict(history_start="2020-01"),meta_models=dict(affinity_window_months=3,affinity_prior=1000.))
+        for month,frame in frames.items():
+            complete=frame.loc[frame.product_complete.eq(1)]
+            scores,_,_=affinity(cls.cache,month,affinity_config,complete)
+            for j,product in enumerate(PRODUCTS):
+                frame.loc[complete.index,"affinity_"+product]=scores[:,j]
         cls.raw=cls.root/"raw.csv"
         raw=flags.rename(columns={"customer_id":"ncodpers","ind_actividad_cliente":"ind_actividad_cliente"}).copy()
         raw["fecha_dato"]=raw["month"]+"-28"
@@ -72,7 +80,7 @@ class IndexedCustomerContracts(unittest.TestCase):
                 if self.small.knows_customer(customer_id,month):
                     actual=self.store.profile(customer_id,month)
                     expected=self.small.profile(customer_id,month)
-                    for key in ["source_run","scope","recommendations"]:
+                    for key in ["source_run","scope"]:
                         actual.pop(key); expected.pop(key)
                     self.assertEqual(actual,expected)
         self.assertFalse(self.store.snapshot(1,"2020-01")["historical_deceased"])

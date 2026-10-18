@@ -58,6 +58,20 @@ function renderEventContext(p) {
     changes.append(block);
   }
   $("event-lifecycle-note").textContent=previous ? (previous.lifecycle===current.lifecycle?`Lifecycle vẫn là ${current.lifecycle}.${current.acquired?.length?" Mở thêm sản phẩm không bắt buộc làm đổi lifecycle.":""}`:`Lifecycle: ${previous.lifecycle} → ${current.lifecycle}. Đây là hai trạng thái được ghi nhận ở hai tháng.`) : "Chưa có tháng trước trong khoảng xem để đối chiếu lifecycle.";
+  renderPreviousAffinity(p.previous_affinity);
+}
+function renderPreviousAffinity(context) {
+  const host=$("event-previous-affinity");host.replaceChildren();
+  if(!context){host.append(el("p","Tải lại trang để cập nhật affinity tháng trước.","small"));return;}
+  host.append(el("h3",`Affinity tháng trước · ${context.as_of_month}`),el("p",`Top 5 sản phẩm tại ${context.as_of_month} → đối chiếu lượt mở ghi nhận trong ${context.target_month}.`,"small"));
+  if(!context.available){host.append(el("p",`Chưa hiển thị đề xuất: ${context.reason}`,"small"));return;}
+  const scroll=el("div",null,"table-scroll"),table=el("table",null,"previous-affinity-table"),head=el("thead"),headRow=el("tr"),body=el("tbody");
+  table.setAttribute("aria-label",`Affinity tháng ${context.as_of_month} đối chiếu tháng ${context.target_month}`);
+  for(const label of ["Hạng","Sản phẩm chưa sở hữu ở tháng trước","Điểm affinity",`Quan sát ${context.target_month}`])headRow.append(el("th",label));
+  head.append(headRow);
+  context.recommendations.forEach((r,i)=>{const row=el("tr"),outcome=el("td"),label=r.acquired_in_target===true?"Có ghi nhận mở":r.acquired_in_target===false?"Không ghi nhận mở":"Chưa đối chiếu được";outcome.append(el("span",label,r.acquired_in_target===true?"affinity-outcome matched":"affinity-outcome"));row.append(el("td",String(i+1)),el("td",r.name),el("td",fmt(r.score,6)),outcome);body.append(row);});
+  table.append(head,body);scroll.append(table);host.append(scroll,el("p",context.reason,"small"));
+  if(!context.outcomes_available)host.append(el("p","Thiếu cặp snapshot đầy đủ để đối chiếu; không xem dữ liệu thiếu là không mở sản phẩm.","small"));
 }
 async function loadAcquisitions(month,page=1,focus=false) {
   if(!metadata.months.includes(month))return;
