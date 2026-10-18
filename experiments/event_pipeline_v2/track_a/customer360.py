@@ -43,6 +43,25 @@ def scalar(value):
     return value.item() if isinstance(value, np.generic) else value
 
 
+def demographic_summary(features):
+    """Describe only the selected month's cluster; missing remains unknown."""
+    summary = {}
+    for source, name in [("age", "age"), ("renta", "income"), ("antiguedad", "tenure")]:
+        values = pd.to_numeric(features.get(source, pd.Series(index=features.index, dtype=float)), errors="coerce")
+        values = values.where(np.isfinite(values))
+        summary[name] = dict(median=scalar(values.median()) if values.notna().any() else None,
+                             coverage=float(values.notna().mean()))
+    for source, name in [("canal_entrada", "channel"), ("segmento", "segment")]:
+        values = features.get(source, pd.Series(index=features.index, dtype="object"))
+        known = values.notna() & ~values.isin(["__MISSING__", "UNKNOWN", ""])
+        counts = values.loc[known].astype(str).value_counts()
+        summary[name] = dict(mode=str(counts.index[0]) if len(counts) else None,
+                             # Denominator includes missing records, like saved persona cards.
+                             share=float(counts.iloc[0] / len(features)) if len(counts) else None,
+                             coverage=float(known.mean()))
+    return summary
+
+
 def care_policy(snapshot):
     """Gate first; rank only valid, active customers against same-month peers."""
     reasons = []
@@ -256,7 +275,16 @@ class CustomerStore:
             features = self.frames[month].reindex(group.index)
             peer_summary = dict(n=len(group), median_F=scalar(features.F_event_months.median()),
                                 median_products=scalar(features.n_products.median()),
-                                mean_clv_1m=scalar(group.clv_1m.mean()), as_of_month=month)
+                                mean_clv_1m=scalar(group.clv_1m.mean()), as_of_month=month,
+                                demographics=demographic_summary(features))
+        customer_row = self.frames[month].loc[customer_id] if current["is_observed"] else pd.Series(dtype=object)
+        customer_demographics = {name: scalar(customer_row.get(col)) for col, name in [
+            ("age", "age"), ("renta", "income"), ("antiguedad", "tenure"),
+            ("canal_entrada", "channel"), ("segmento", "segment")
+        ]}
+        for key in ["channel", "segment"]:
+            if customer_demographics[key] in ["__MISSING__", "UNKNOWN", ""]:
+                customer_demographics[key] = None
         gaps = sum(not r["is_observed"] or not r["product_complete"] for r in timeline)
         history_pairs = current["observed_pairs"]
         evidence = "Đủ điều kiện so sánh" if current["cross_sell_eligible"] and (history_pairs or 0) >= 3 and current["clv_1m"] is not None else "Cần bổ sung / xác minh"
@@ -283,6 +311,11 @@ class CustomerStore:
                     current=current, timeline=timeline, policy=policy,
                     persona_description=RULE_PERSONAS.get(current["persona_rule"], "Chưa đủ điều kiện gán persona rule"),
                     persona_fit_month=self.bundle["fit_month"], persona_peers=peer_summary,
+                    customer_demographics=customer_demographics,
+                    persona_model=dict(namespace="persona_multiblock", method="KMeans",
+                        k=getattr(self.bundle["model"], "n_clusters", None),
+                        fit_month=self.bundle["fit_month"], demographics_only=False,
+                        description="Demographics + RFM + CLV-proxy + portfolio + affinity"),
                     recommendations=recommendations[:5], product_names=PRODUCT_NAMES,
                     evidence=dict(label=evidence, observed_pairs=history_pairs, gap_months=gaps,
                                   meaning="Mức đầy đủ dữ liệu, không phải xác suất dự báo đúng."),

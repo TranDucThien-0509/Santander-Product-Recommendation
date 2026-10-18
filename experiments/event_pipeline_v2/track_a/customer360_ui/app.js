@@ -18,11 +18,23 @@ function syncRange(preferredStart) {
 function selectedWindow() { return metadata.months.indexOf($("month").value)-metadata.months.indexOf($("start-month").value)+1; }
 function renderPersona(p) {
   const c=p.current, peer=p.persona_peers, blocks=[];
-  const cluster=el("div",null,"persona-block"); cluster.append(el("h3",`${c.cluster || "Cụm C chưa khả dụng"} · Nhóm tương đồng từ dữ liệu`));
+  const cluster=el("div",null,"persona-block"); cluster.append(el("h3",`${c.cluster || "Cụm C chưa khả dụng"} · Chân dung khách hàng`));
   if(peer) {
-    cluster.append(el("p",`KMeans xếp khách vào ${c.cluster} vì hồ sơ tổng hợp gần tâm cụm này nhất sau xử lý đặc trưng. Mô hình xét R/F/M, danh mục sản phẩm, CLV-proxy, affinity và thông tin hồ sơ (tuổi, thu nhập, thâm niên, kênh, segment).`,"small"));
-    cluster.append(el("p",`Đặc điểm ${c.cluster} tại ${peer.as_of_month}: ${fmt(peer.n)} khách; F trung vị ${fmt(peer.median_F,1)} tháng có sự kiện, danh mục trung vị ${fmt(peer.median_products,1)} sản phẩm; CLV-proxy trung bình ${fmt(peer.mean_clv_1m,3)} SP/tháng.`,"small"));
-    cluster.append(el("p",`Riêng khách này: F=${fmt(c.F)}, đang giữ ${fmt(c.n_products)} sản phẩm, CLV-proxy=${fmt(c.clv_1m,3)} SP/tháng. Các số trung vị mô tả cụm; việc gán C dùng toàn bộ hồ sơ.`,"small"));
+    const d=peer.demographics, own=p.customer_demographics, model=p.persona_model;
+    const portrait=[];
+    if(d.age.median!=null)portrait.push(`tuổi trung vị ${fmt(d.age.median,0)}`);
+    if(d.tenure.median!=null)portrait.push(`thâm niên trung vị ${fmt(d.tenure.median,0)} tháng`);
+    if(d.segment.mode)portrait.push(`phân khúc phổ biến ${d.segment.mode} (${fmt(d.segment.share*100,1)}%)`);
+    cluster.append(el("p",`Chân dung ${c.cluster} tại ${peer.as_of_month}: ${fmt(peer.n)} khách${portrait.length ? "; "+portrait.join("; ") : "; chưa đủ demographics để mô tả"}.`,"cluster-portrait"));
+    const table=el("table",null,"demographic-table"), head=el("thead"), titles=el("tr");
+    titles.append(el("th","Đặc điểm"),el("th","Khách này"),el("th",`Cụm ${c.cluster} · điển hình`));head.append(titles);const body=el("tbody");
+    const numerical=(field,unit="")=>[own[field]==null?"—":fmt(own[field],0)+unit,d[field].median==null?"Chưa có dữ liệu":`${fmt(d[field].median,0)}${unit}${d[field].coverage<1 ? " (có dữ liệu "+fmt(d[field].coverage*100,1)+"%)" : ""}`];
+    const categorical=field=>[own[field]||"—",d[field].mode?`${d[field].mode} (${fmt(d[field].share*100,1)}% cụm)`:"Chưa có dữ liệu"];
+    for(const [label,values] of [["Tuổi",numerical("age")],["Thu nhập (renta)",numerical("income")],["Thâm niên",numerical("tenure"," tháng")],["Kênh vào",categorical("channel")],["Phân khúc",categorical("segment")]]){const row=el("tr");row.append(el("td",label),...values.map(v=>el("td",v)));body.append(row);}
+    table.append(head,body);const wrap=el("div",null,"table-scroll");wrap.append(table);cluster.append(wrap,el("p","Số của cụm là trung vị; kênh/phân khúc là giá trị phổ biến. — là chưa có dữ liệu.","small"));
+    cluster.append(el("p",`Hành vi cụm: F trung vị ${fmt(peer.median_F,1)}, danh mục trung vị ${fmt(peer.median_products,1)} SP, CLV-proxy trung bình ${fmt(peer.mean_clv_1m,3)} SP/tháng. Active là trạng thái hoạt động trong nguồn; F=0 nghĩa chưa ghi nhận mở thêm SP trong lịch sử hợp lệ.`,"small"));
+    cluster.append(el("p",`Persona KMeans${model.k?" "+model.k+" cụm":""} · fit ${model.fit_month} · dùng demographics và hành vi/RFM, CLV-proxy, danh mục, affinity.`,"small"));
+    const details=el("details",null,"persona-method"), summary=el("summary","Vì sao khách được gán cụm này?");details.append(summary,el("p",`Hồ sơ tổng hợp của khách gần tâm ${c.cluster} nhất sau tiền xử lý. Bảng mô tả khách điển hình của cụm; thành viên có thể khác trung vị hoặc kênh phổ biến. Đây là mô hình đa nhóm feature, không chỉ gom demographics. Mã C của mô hình RFM khác có thể mang ý nghĩa khác. Tuổi/thu nhập tham gia persona; mức ưu tiên chăm sóc được tính riêng từ hành vi, CLV-proxy và điều kiện dữ liệu.`,"small"));cluster.append(details);
   } else cluster.append(el("p",`Mô hình cụm C được fit tại ${p.persona_fit_month}; chỉ gán từ tháng fit khi có danh mục đầy đủ. Khách vắng hoặc thiếu dữ liệu được để trống.`,"small"));
   blocks.push(cluster);
   const rule=el("div",null,"persona-block");rule.append(el("h3",`${c.persona_rule || "Nhãn P chưa khả dụng"} · Nhóm theo quy tắc hành vi`));

@@ -53,6 +53,19 @@ cụm gần nhất sau preprocessing và hiển thị đặc điểm cohort cùn
 quy tắc F/số SP cùng số liệu cụ thể của khách, ví dụ P5 = F≥2 và 2–4 SP.
 Hai mã C/P mô tả hai góc nhìn song song, không phải điểm đánh giá khách.
 
+**C là chân dung đa chiều, có demographics:** phần C có bảng tuổi, thu nhập
+`renta`, thâm niên, kênh và phân khúc của khách so với cụm tại đúng tháng chấm
+điểm. Số cụm dùng trung vị cho số, mode/tỷ trọng cho danh mục và hiển thị coverage
+của dữ liệu số. Thiếu demographics giữ null, không thay bằng 0. Bảng mô tả đặc
+điểm điển hình, không đặt điều kiện rằng mọi khách phải giống trung vị hoặc
+kênh phổ biến của cụm. Thu nhập giữ đơn vị nguồn, không diễn giải thành lợi nhuận.
+
+Mô hình đang phục vụ là **persona multiblock KMeans**, dùng cả demographics,
+RFM, CLV-proxy, portfolio và affinity. C2 của mô hình này không phải C2 của
+KMeans RFM notebook 03 hoặc một mô hình chỉ gom demographics. UI ghi rõ số
+cụm và tháng fit; không đổi tên hay fit lại để ép các nhãn trùng nhau. Trạng
+thái Active từ nguồn cũng không có nghĩa khách đã mở thêm sản phẩm (F>0).
+
 Đổi **Lịch sử từ tháng** chỉ đổi cửa sổ quan sát, không tính lại F hoặc nhãn persona.
 Đổi **Tháng chấm điểm** (tháng kết thúc) đổi thời điểm đánh giá toàn bộ hồ sơ. Ví dụ chọn
 2015-03 → 2016-05 để xem 15 tháng. Chọn nhanh tự điều chỉnh tháng bắt đầu;
@@ -123,8 +136,10 @@ cho từng khách ở dashboard; không nhân CLV 1m với 6 để thay thế.
 python -m unittest discover -s tests -p test_customer360.py -v
 ```
 
-9 synthetic contract tests: không dùng tháng tương lai, không gán cụm trước fit,
+11 synthetic contract tests: không dùng tháng tương lai, không gán cụm trước fit,
 absence/null và cặp sự kiện bị đứt, ownership mask, activity/death/unknown gates,
 midrank ties, invalid CLV, policy thresholds, cờ deceased trong lịch sử và
 HTTP no-store/Host/Origin/validation.
+Hai test bổ sung kiểm tra demographics khách/cụm đúng tháng và coverage/null
+không thành 0 hoặc dùng demographics của tháng tương lai.
 Không cần raw thật cho CI.

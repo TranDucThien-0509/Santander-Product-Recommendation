@@ -21,6 +21,8 @@ class Transform:
 
 
 class Model:
+    n_clusters = 1
+
     def predict(self, x):
         return np.zeros(len(x), dtype=int)
 
@@ -124,6 +126,38 @@ class Customer360Contracts(unittest.TestCase):
         self.assertEqual(care_policy(dict(s, clv_peer_percentile=80))["action"], "test")
         self.assertEqual(care_policy(dict(s, clv_peer_percentile=79.9))["action"], "maintain")
         self.assertEqual(care_policy(dict(s, observed_pairs=2, clv_peer_percentile=99))["action"], "observe")
+
+    def test_demographics_describe_the_selected_month_not_latest(self):
+        for month, age in [("2020-02", 21.), ("2020-03", 22.)]:
+            self.args[0][month]["age"] = age
+            self.args[0][month]["antiguedad"] = age - 18
+            self.args[0][month]["renta"] = age * 1000
+            self.args[0][month]["canal_entrada"] = month
+            self.args[0][month]["segmento"] = "SAMPLE"
+        store = CustomerStore(*self.args)
+        old = store.profile(2,"2020-02")
+        latest = store.profile(2,"2020-03")
+        self.assertEqual(old["customer_demographics"]["age"], 21)
+        self.assertEqual(old["persona_peers"]["demographics"]["age"]["median"], 21)
+        self.assertEqual(latest["persona_peers"]["demographics"]["age"]["median"], 22)
+        self.assertEqual(old["persona_peers"]["demographics"]["channel"]["mode"], "2020-02")
+        self.assertFalse(old["persona_model"]["demographics_only"])
+        self.args[0]["2020-03"]["age"] = 99
+        self.assertEqual(old, CustomerStore(*self.args).profile(2,"2020-02"))
+
+    def test_missing_demographics_have_coverage_and_do_not_become_zero(self):
+        self.args[0]["2020-03"]["renta"] = np.nan
+        self.args[0]["2020-03"].loc[1,"renta"] = 10000
+        self.args[0]["2020-03"]["canal_entrada"] = "__MISSING__"
+        self.args[0]["2020-03"].loc[[1,2],"canal_entrada"] = "KNOWN"
+        p = CustomerStore(*self.args).profile(2,"2020-03")
+        d = p["persona_peers"]["demographics"]
+        self.assertIsNone(p["customer_demographics"]["income"])
+        self.assertIsNone(d["age"]["median"])
+        self.assertEqual(d["age"]["coverage"], 0)
+        self.assertEqual(d["income"]["median"], 10000)
+        self.assertEqual(d["income"]["coverage"], .2)
+        self.assertEqual(d["channel"]["share"], .4)
 
     def test_past_deceased_flag_blocks_even_after_absence_or_changed_flag(self):
         flags = self.args[2]
