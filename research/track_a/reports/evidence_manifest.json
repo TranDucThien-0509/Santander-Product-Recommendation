@@ -1,0 +1,155 @@
+[
+  {
+    "file": "reports/evidence/rfm_scorecard.csv",
+    "source": "03-rfm-quantile-333-555-1(5).ipynb",
+    "cell_index_zero_based": 9,
+    "output_index": 0,
+    "rows": 16,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/lifecycle_ablation.csv",
+    "source": "05-lifecycle-eda-insights(2).ipynb",
+    "cell_index_zero_based": 15,
+    "output_index": 0,
+    "rows": 3,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/affinity_validation.csv",
+    "source": "13-persona-affinity(1).ipynb",
+    "cell_index_zero_based": 16,
+    "output_index": 0,
+    "rows": 15,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/affinity_test_summary.csv",
+    "source": "13-persona-affinity(1).ipynb",
+    "cell_index_zero_based": 18,
+    "output_index": 1,
+    "rows": 15,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/clv_validation_selection.csv",
+    "source": "07-clv-proxy(2).ipynb",
+    "cell_index_zero_based": 7,
+    "output_index": 0,
+    "rows": 6,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/clv_test_acquisitions_1m.csv",
+    "source": "07-clv-proxy(2).ipynb",
+    "cell_index_zero_based": 9,
+    "output_index": 7,
+    "rows": 12,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/clv_selected_test_monthly.csv",
+    "source": "07-clv-proxy(2).ipynb",
+    "cell_index_zero_based": 9,
+    "output_index": 19,
+    "rows": 24,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/persona_behavior_latest.csv",
+    "source": "10-persona-decision-tree (2).ipynb",
+    "cell_index_zero_based": 7,
+    "output_index": 1,
+    "rows": 6,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/persona_clv_coverage_latest.csv",
+    "source": "12-persona-clv (1).ipynb",
+    "cell_index_zero_based": 3,
+    "output_index": 0,
+    "rows": 14,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/persona_clv_distribution_latest.csv",
+    "source": "12-persona-clv (1).ipynb",
+    "cell_index_zero_based": 3,
+    "output_index": 1,
+    "rows": 12,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/persona_temporal_rules.csv",
+    "source": "13-persona-affinity(1).ipynb",
+    "cell_index_zero_based": 26,
+    "output_index": 1,
+    "rows": 30,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/persona_rfm_ablation.csv",
+    "source": "10-persona-decision-tree (2).ipynb",
+    "cell_index_zero_based": 12,
+    "output_index": 1,
+    "rows": 5,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/demographics_join_coverage.csv",
+    "source": "14-persona-demographics (1).ipynb",
+    "cell_index_zero_based": 5,
+    "output_index": 0,
+    "rows": 6,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/demographics_numeric_latest.csv",
+    "source": "14-persona-demographics (1).ipynb",
+    "cell_index_zero_based": 7,
+    "output_index": 0,
+    "rows": 21,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/demographics_quality_latest.csv",
+    "source": "14-persona-demographics (1).ipynb",
+    "cell_index_zero_based": 7,
+    "output_index": 1,
+    "rows": 49,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/demographics_numeric_stability.csv",
+    "source": "14-persona-demographics (1).ipynb",
+    "cell_index_zero_based": 9,
+    "output_index": 1,
+    "rows": 18,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  },
+  {
+    "file": "reports/evidence/demographics_profiles_latest.csv",
+    "source": "14-persona-demographics (1).ipynb",
+    "cell_index_zero_based": 11,
+    "output_index": 0,
+    "rows": 6,
+    "precision": "saved display precision; not recomputed from customer predictions",
+    "partial": false
+  }
+]

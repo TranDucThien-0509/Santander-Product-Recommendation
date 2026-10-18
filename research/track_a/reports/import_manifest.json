@@ -1,0 +1,322 @@
+{
+  "source": "user-provided santander-customer-analytics research package",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "692956ae537383a9d45250c2ca1b0bcfb0351df353fd665e253c1f4e0e1f966c",
+      "repository_lf_sha256": "692956ae537383a9d45250c2ca1b0bcfb0351df353fd665e253c1f4e0e1f966c"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "ec503e32d2f7f61040bfb7733abe7cb366a7c7f4bebe38281a6db4dc1fbb6139",
+      "repository_lf_sha256": "ec503e32d2f7f61040bfb7733abe7cb366a7c7f4bebe38281a6db4dc1fbb6139"
+    },
+    {
+      "path": "configs/finalization.example.json",
+      "sha256": "c78bc08527b9199aefee0c65a17ccff542f10ac2a06f894bc42c4302246ecf13",
+      "repository_lf_sha256": "c78bc08527b9199aefee0c65a17ccff542f10ac2a06f894bc42c4302246ecf13"
+    },
+    {
+      "path": "docs/01_decisions.md",
+      "sha256": "f07535519ab6678eae5852c373fa396f3c7adf5c50a7862e7fa81d7776fb587e",
+      "repository_lf_sha256": "f07535519ab6678eae5852c373fa396f3c7adf5c50a7862e7fa81d7776fb587e"
+    },
+    {
+      "path": "docs/02_benchmarks.md",
+      "sha256": "fe01da24683e3bb2073baabffb3194a528e3653c9c31a3e3b818337b008e90a1",
+      "repository_lf_sha256": "fe01da24683e3bb2073baabffb3194a528e3653c9c31a3e3b818337b008e90a1"
+    },
+    {
+      "path": "docs/03_integration.md",
+      "sha256": "fedc6adeada5d7e318eb9a753c9844a95b5ab84adb04b765ba0f87228e1f0947",
+      "repository_lf_sha256": "fedc6adeada5d7e318eb9a753c9844a95b5ab84adb04b765ba0f87228e1f0947"
+    },
+    {
+      "path": "docs/04_persona_cards.md",
+      "sha256": "01f179e24c008d9fd2901f1ce6115d5752c8b7edf3a4403686ed5e04e80adf2a",
+      "repository_lf_sha256": "01f179e24c008d9fd2901f1ce6115d5752c8b7edf3a4403686ed5e04e80adf2a"
+    },
+    {
+      "path": "docs/data_dictionary.md",
+      "sha256": "d0f11802ddf492addce69fd58c02e3abfb5bd181a389c5fa2386549fdf446fde",
+      "repository_lf_sha256": "d0f11802ddf492addce69fd58c02e3abfb5bd181a389c5fa2386549fdf446fde"
+    },
+    {
+      "path": "docs/limitations.md",
+      "sha256": "218bcbf9566c8d6e2f80481794967f7ba2b1cb723d0978b6da072948534af5cb",
+      "repository_lf_sha256": "218bcbf9566c8d6e2f80481794967f7ba2b1cb723d0978b6da072948534af5cb"
+    },
+    {
+      "path": "docs/personas/P1.md",
+      "sha256": "ecbf02117cc6464c86742522b032e0535f18f0a679f667a8bc418b5e5fa70266",
+      "repository_lf_sha256": "ecbf02117cc6464c86742522b032e0535f18f0a679f667a8bc418b5e5fa70266"
+    },
+    {
+      "path": "docs/personas/P2.md",
+      "sha256": "8b3969948deaebd50bd7db011c96ce444e067b297e3d5b02262698cc6ab63217",
+      "repository_lf_sha256": "8b3969948deaebd50bd7db011c96ce444e067b297e3d5b02262698cc6ab63217"
+    },
+    {
+      "path": "docs/personas/P3.md",
+      "sha256": "22fbad98447e5609371db44919657830dd8a193c6a1dc5bf7b21f92f4331b1ae",
+      "repository_lf_sha256": "22fbad98447e5609371db44919657830dd8a193c6a1dc5bf7b21f92f4331b1ae"
+    },
+    {
+      "path": "docs/personas/P4.md",
+      "sha256": "a0b6d3f3affd9784d7bccf8c905cb77f3c9034ef0efe7c25216ef47c4db9f92d",
+      "repository_lf_sha256": "a0b6d3f3affd9784d7bccf8c905cb77f3c9034ef0efe7c25216ef47c4db9f92d"
+    },
+    {
+      "path": "docs/personas/P5.md",
+      "sha256": "4496a9d3ac0226b06d8ae72efd0b944900205d31055d26c5257296acc98d662e",
+      "repository_lf_sha256": "4496a9d3ac0226b06d8ae72efd0b944900205d31055d26c5257296acc98d662e"
+    },
+    {
+      "path": "docs/personas/P6.md",
+      "sha256": "c6ac8dead0738a8f02b346d81da6431bd42caf57b68e90dc285857d70c7f64d5",
+      "repository_lf_sha256": "c6ac8dead0738a8f02b346d81da6431bd42caf57b68e90dc285857d70c7f64d5"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "sha256": "66631aae9a0f6c87a63b7de7b9d0368d2a2afea40ab08e7859fce2696e9b6157",
+      "repository_lf_sha256": "66631aae9a0f6c87a63b7de7b9d0368d2a2afea40ab08e7859fce2696e9b6157"
+    },
+    {
+      "path": "notebooks/00_raw_eda.ipynb",
+      "sha256": "c3232e5dfcf77369280c82566637aa42fef8279d60fc070146f197c899ef89b8",
+      "repository_lf_sha256": "c3232e5dfcf77369280c82566637aa42fef8279d60fc070146f197c899ef89b8"
+    },
+    {
+      "path": "notebooks/01_rfm_features.ipynb",
+      "sha256": "b1c1866e354104412c487bb15139bc26ac2e85ce5f20fb272620c24e3623b4b7",
+      "repository_lf_sha256": "b1c1866e354104412c487bb15139bc26ac2e85ce5f20fb272620c24e3623b4b7"
+    },
+    {
+      "path": "notebooks/02_rfm_combinations.ipynb",
+      "sha256": "023748722c33fa6f1ba86a0064611cc94102fb77a75bc41d1a69771d711c93dd",
+      "repository_lf_sha256": "023748722c33fa6f1ba86a0064611cc94102fb77a75bc41d1a69771d711c93dd"
+    },
+    {
+      "path": "notebooks/03_rfm_comparison.ipynb",
+      "sha256": "2a55abb2653efd71a8c754fe8aa74eae18d8a25e5b2053200162cd873ed9f09e",
+      "repository_lf_sha256": "2a55abb2653efd71a8c754fe8aa74eae18d8a25e5b2053200162cd873ed9f09e"
+    },
+    {
+      "path": "notebooks/05_lifecycle.ipynb",
+      "sha256": "f5129095b6ad2d087d83e6158651417dc18b522f7a421ef781db2665df72beaf",
+      "repository_lf_sha256": "f5129095b6ad2d087d83e6158651417dc18b522f7a421ef781db2665df72beaf"
+    },
+    {
+      "path": "notebooks/06_affinity.ipynb",
+      "sha256": "0ace073cb40783dad607b9a7adb4ded54ed0f0fb37599521e121fe34dc0bab60",
+      "repository_lf_sha256": "0ace073cb40783dad607b9a7adb4ded54ed0f0fb37599521e121fe34dc0bab60"
+    },
+    {
+      "path": "notebooks/07_clv_proxy.ipynb",
+      "sha256": "66e0b3313b3f701c88208782eca12ae58fb84d97f23e68f870f20034ffbb8068",
+      "repository_lf_sha256": "66e0b3313b3f701c88208782eca12ae58fb84d97f23e68f870f20034ffbb8068"
+    },
+    {
+      "path": "notebooks/08_persona_rules.ipynb",
+      "sha256": "33af4c2a1dec5b8675bf4c9ed6bc04e2d2811fb86e63a1214f7e00910a7052bd",
+      "repository_lf_sha256": "33af4c2a1dec5b8675bf4c9ed6bc04e2d2811fb86e63a1214f7e00910a7052bd"
+    },
+    {
+      "path": "notebooks/09_persona_alternatives.ipynb",
+      "sha256": "ddd97deab5aba330057bbb04fe5ca344e0bba55c01f7bb8559360cf9348046b3",
+      "repository_lf_sha256": "ddd97deab5aba330057bbb04fe5ca344e0bba55c01f7bb8559360cf9348046b3"
+    },
+    {
+      "path": "notebooks/10_persona_tree.ipynb",
+      "sha256": "030a0c3cfd66f9b8e2dde38fcc8ebe5e2e08dbf03f84a8270c4cb3464bb0d1f9",
+      "repository_lf_sha256": "030a0c3cfd66f9b8e2dde38fcc8ebe5e2e08dbf03f84a8270c4cb3464bb0d1f9"
+    },
+    {
+      "path": "notebooks/10b_persona_fm_experiments.ipynb",
+      "sha256": "e695d82c1a84d48ecb0638fac40565163025b62377065131d5294ff69414a3c6",
+      "repository_lf_sha256": "e695d82c1a84d48ecb0638fac40565163025b62377065131d5294ff69414a3c6"
+    },
+    {
+      "path": "notebooks/11_persona_lifecycle.ipynb",
+      "sha256": "521cb06a51d5823adee51a05c52512c3b0b42c09a15993c1862cbf60543f227a",
+      "repository_lf_sha256": "521cb06a51d5823adee51a05c52512c3b0b42c09a15993c1862cbf60543f227a"
+    },
+    {
+      "path": "notebooks/12_persona_clv.ipynb",
+      "sha256": "1890afb9a74dda1b1182ab05c248d241d51759f41cf1accc2d8cc5bd0b0e7dd8",
+      "repository_lf_sha256": "1890afb9a74dda1b1182ab05c248d241d51759f41cf1accc2d8cc5bd0b0e7dd8"
+    },
+    {
+      "path": "notebooks/13_persona_affinity.ipynb",
+      "sha256": "86f2f69fa8bc123ac75369784d807a793c4fcf1956c2d9eee667c74a105f854a",
+      "repository_lf_sha256": "86f2f69fa8bc123ac75369784d807a793c4fcf1956c2d9eee667c74a105f854a"
+    },
+    {
+      "path": "notebooks/14_persona_demographics.ipynb",
+      "sha256": "0ac3381f6176db88551260828124c8ab2b9b0af2534c0e62a63249bc00594828",
+      "repository_lf_sha256": "0ac3381f6176db88551260828124c8ab2b9b0af2534c0e62a63249bc00594828"
+    },
+    {
+      "path": "notebooks/15_finalize.ipynb",
+      "sha256": "067b006e61a3a52b2f590b987bd953fc05350f23149be8d4363ba37eaaa828e0",
+      "repository_lf_sha256": "067b006e61a3a52b2f590b987bd953fc05350f23149be8d4363ba37eaaa828e0"
+    },
+    {
+      "path": "notebooks/README.md",
+      "sha256": "f01eb87f90c6e664b23b2f97b0cf5f8bcc3de9e6cb2f7ac7039ba6c29fcddd96",
+      "repository_lf_sha256": "f01eb87f90c6e664b23b2f97b0cf5f8bcc3de9e6cb2f7ac7039ba6c29fcddd96"
+    },
+    {
+      "path": "reports/benchmark_summary.csv",
+      "sha256": "3efb46169b2d015992fadcee2fd0d865076c9ba1d0318e10e90e2d1bd3df08fc",
+      "repository_lf_sha256": "3efb46169b2d015992fadcee2fd0d865076c9ba1d0318e10e90e2d1bd3df08fc"
+    },
+    {
+      "path": "reports/evidence/affinity_test_summary.csv",
+      "sha256": "715923382288ced2c7fc5fd8305fef946c7fab0b8269a8545dea267a8422e258",
+      "repository_lf_sha256": "715923382288ced2c7fc5fd8305fef946c7fab0b8269a8545dea267a8422e258"
+    },
+    {
+      "path": "reports/evidence/affinity_validation.csv",
+      "sha256": "86b6867a37b1c5d5b5a1339ecd55bc4e44b74cfb87af4988eda2d2e0440ef244",
+      "repository_lf_sha256": "86b6867a37b1c5d5b5a1339ecd55bc4e44b74cfb87af4988eda2d2e0440ef244"
+    },
+    {
+      "path": "reports/evidence/clv_selected_test_monthly.csv",
+      "sha256": "f69e7f39575936be2fba9388d2067612f7ff6e367c570d8bd43a7950cab12801",
+      "repository_lf_sha256": "f69e7f39575936be2fba9388d2067612f7ff6e367c570d8bd43a7950cab12801"
+    },
+    {
+      "path": "reports/evidence/clv_test_acquisitions_1m.csv",
+      "sha256": "6b8cd176b891b1998c36813b6c21fc55aed1fc857e564bc7490b1fa493750073",
+      "repository_lf_sha256": "6b8cd176b891b1998c36813b6c21fc55aed1fc857e564bc7490b1fa493750073"
+    },
+    {
+      "path": "reports/evidence/clv_validation_selection.csv",
+      "sha256": "40ee1c1bf036d03bffe04b4c5b74c58a76bbbeaa9ad372aaf8a56197a09ad2ed",
+      "repository_lf_sha256": "40ee1c1bf036d03bffe04b4c5b74c58a76bbbeaa9ad372aaf8a56197a09ad2ed"
+    },
+    {
+      "path": "reports/evidence/demographics_join_coverage.csv",
+      "sha256": "e7d6b5b0ded18ca27eb45a6aac11f0da3d4f0c9f055e70014915796f47a70b47",
+      "repository_lf_sha256": "e7d6b5b0ded18ca27eb45a6aac11f0da3d4f0c9f055e70014915796f47a70b47"
+    },
+    {
+      "path": "reports/evidence/demographics_numeric_latest.csv",
+      "sha256": "5f30a031fa1393cda9a73fa7fa87bee1332c12f1a8cbde30bc288be610f18869",
+      "repository_lf_sha256": "5f30a031fa1393cda9a73fa7fa87bee1332c12f1a8cbde30bc288be610f18869"
+    },
+    {
+      "path": "reports/evidence/demographics_numeric_stability.csv",
+      "sha256": "8faaac088f5d85fc2007185db1c93b62cb171b749d6520ace50e7ab13eae5f63",
+      "repository_lf_sha256": "8faaac088f5d85fc2007185db1c93b62cb171b749d6520ace50e7ab13eae5f63"
+    },
+    {
+      "path": "reports/evidence/demographics_profiles_latest.csv",
+      "sha256": "ed9a87090c6fd7104209079714f3a4145386fe8675a65478b46fc3c0e1d319e9",
+      "repository_lf_sha256": "ed9a87090c6fd7104209079714f3a4145386fe8675a65478b46fc3c0e1d319e9"
+    },
+    {
+      "path": "reports/evidence/demographics_quality_latest.csv",
+      "sha256": "00776ae3c956d1469e788e77e7fe09c03d132a8dffbf211248db83e10a6d7cb7",
+      "repository_lf_sha256": "00776ae3c956d1469e788e77e7fe09c03d132a8dffbf211248db83e10a6d7cb7"
+    },
+    {
+      "path": "reports/evidence/lifecycle_ablation.csv",
+      "sha256": "860cf4e5f5086adc18ed2f3608c3aedecf2ba07a478d776bc6f733b44487a774",
+      "repository_lf_sha256": "860cf4e5f5086adc18ed2f3608c3aedecf2ba07a478d776bc6f733b44487a774"
+    },
+    {
+      "path": "reports/evidence/persona_behavior_latest.csv",
+      "sha256": "ce20a30cd602bdee53d21b60d3f7c100453f0f44e7c6c732b4617a7be87fd990",
+      "repository_lf_sha256": "ce20a30cd602bdee53d21b60d3f7c100453f0f44e7c6c732b4617a7be87fd990"
+    },
+    {
+      "path": "reports/evidence/persona_clv_coverage_latest.csv",
+      "sha256": "c342269909f4b4c9d700caa518984d5c2aa50a1295ddff877248cd7c58401e67",
+      "repository_lf_sha256": "c342269909f4b4c9d700caa518984d5c2aa50a1295ddff877248cd7c58401e67"
+    },
+    {
+      "path": "reports/evidence/persona_clv_distribution_latest.csv",
+      "sha256": "806f9082222f97fd48419888501fde8b998e641bfdfe8989b6cd1000b2f0a2a9",
+      "repository_lf_sha256": "806f9082222f97fd48419888501fde8b998e641bfdfe8989b6cd1000b2f0a2a9"
+    },
+    {
+      "path": "reports/evidence/persona_rfm_ablation.csv",
+      "sha256": "86ba4fba84485ba10882e52d209535cb88190984b05867475f148b14d215baae",
+      "repository_lf_sha256": "86ba4fba84485ba10882e52d209535cb88190984b05867475f148b14d215baae"
+    },
+    {
+      "path": "reports/evidence/persona_temporal_rules.csv",
+      "sha256": "5c30af09bb6b613424b8adab346bdf1b8b3bee1cb17ea03cbb3f988fe92059a4",
+      "repository_lf_sha256": "5c30af09bb6b613424b8adab346bdf1b8b3bee1cb17ea03cbb3f988fe92059a4"
+    },
+    {
+      "path": "reports/evidence/rfm_scorecard.csv",
+      "sha256": "2a03f90d7574e09a1b896a29422ac3df34b33268ee5032c5abc95e2824668b81",
+      "repository_lf_sha256": "2a03f90d7574e09a1b896a29422ac3df34b33268ee5032c5abc95e2824668b81"
+    },
+    {
+      "path": "reports/evidence_manifest.json",
+      "sha256": "02d897a2afd319500c2f348bfa9d4a75c0778e06799a7f673f9c0a43a5b1560c",
+      "repository_lf_sha256": "02d897a2afd319500c2f348bfa9d4a75c0778e06799a7f673f9c0a43a5b1560c"
+    },
+    {
+      "path": "reports/source_manifest.json",
+      "sha256": "b9e5a6a76ffdb71bd5df80d0e0827a447a90fd01f7508c32b4f314a1440837f6",
+      "repository_lf_sha256": "b9e5a6a76ffdb71bd5df80d0e0827a447a90fd01f7508c32b4f314a1440837f6"
+    },
+    {
+      "path": "scripts/extract_evidence.py",
+      "sha256": "6ee60fb8649454f66ee747c552fedf92c08fa06711340b3a2df84076b39d9e52",
+      "repository_lf_sha256": "cf2249bf076ff51961bccce9a081476d370db9c6f14aa01024a0e4a3a4f6a470"
+    },
+    {
+      "path": "scripts/render_benchmarks.py",
+      "sha256": "3d3491bbce6513c1beee274bd47f8c7db6e97ed709e83594d6932b6bdf3f33c7",
+      "repository_lf_sha256": "3d3491bbce6513c1beee274bd47f8c7db6e97ed709e83594d6932b6bdf3f33c7"
+    },
+    {
+      "path": "src/santander_wrap/__init__.py",
+      "sha256": "b5600a9b5121a2f9a321096368dc5b4ef55c58f7d03e2246450a188ca6b330e9",
+      "repository_lf_sha256": "b5600a9b5121a2f9a321096368dc5b4ef55c58f7d03e2246450a188ca6b330e9"
+    },
+    {
+      "path": "src/santander_wrap/build.py",
+      "sha256": "adbb42f917c978f871e33e8801de2f5815017db910732df55791ef1efac6ee0f",
+      "repository_lf_sha256": "adbb42f917c978f871e33e8801de2f5815017db910732df55791ef1efac6ee0f"
+    },
+    {
+      "path": "src/santander_wrap/cards.py",
+      "sha256": "eae346e9a6337278b15281aaed343f2354d37713fbdd0a106caa83e85421c83e",
+      "repository_lf_sha256": "eae346e9a6337278b15281aaed343f2354d37713fbdd0a106caa83e85421c83e"
+    },
+    {
+      "path": "src/santander_wrap/cli.py",
+      "sha256": "4afd6b8531c8a6cf19e168219af9cd71dd793e883c71c4c5ea3d32f9c5e1384d",
+      "repository_lf_sha256": "4afd6b8531c8a6cf19e168219af9cd71dd793e883c71c4c5ea3d32f9c5e1384d"
+    },
+    {
+      "path": "src/santander_wrap/demographics.py",
+      "sha256": "d78f3a36f035f44887159347127a933a0ead1e4e950384a5a3a947ea7778dfb9",
+      "repository_lf_sha256": "d78f3a36f035f44887159347127a933a0ead1e4e950384a5a3a947ea7778dfb9"
+    },
+    {
+      "path": "src/santander_wrap/schema.py",
+      "sha256": "4a7a5c12bc782bfbadc617a4eb1ee94f7e06c824f691f7d69968098c1eed966a",
+      "repository_lf_sha256": "4a7a5c12bc782bfbadc617a4eb1ee94f7e06c824f691f7d69968098c1eed966a"
+    },
+    {
+      "path": "tests/test_integration.py",
+      "sha256": "81db1e81702faaea3a79bc737572a9eca6259009f0287b6506d98cc980b97e3e",
+      "repository_lf_sha256": "81db1e81702faaea3a79bc737572a9eca6259009f0287b6506d98cc980b97e3e"
+    }
+  ],
+  "repository_hash_format": "UTF-8 source bytes with CRLF normalized to LF; helper trailing whitespace normalized",
+  "adjustments": [
+    {
+      "path": "scripts/extract_evidence.py",
+      "change": "Removed trailing whitespace only; original source SHA256 retained in sha256 field."
+    }
+  ]
+}

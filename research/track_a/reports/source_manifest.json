@@ -1,0 +1,92 @@
+[
+  {
+    "original": "santander-eda.ipynb",
+    "repository": "notebooks/00_raw_eda.ipynb",
+    "sha256_uploaded": "45e0118d09980d4112db9b5a57183d3caebe471559a80beb25118c7108452004",
+    "outputs_removed": true
+  },
+  {
+    "original": "01-r-f-m-analysis (1)(2).ipynb",
+    "repository": "notebooks/01_rfm_features.ipynb",
+    "sha256_uploaded": "52aeb82f78238aa86ceff242672549af2c4c95dfee5d8d02387067d08e7a0c0c",
+    "outputs_removed": true
+  },
+  {
+    "original": "02-rf-rfm-combination-analysis (1)(1).ipynb",
+    "repository": "notebooks/02_rfm_combinations.ipynb",
+    "sha256_uploaded": "15b1228539807747ae3983d998760d0ecef62a91746a3ecd8704e99897ff023c",
+    "outputs_removed": true
+  },
+  {
+    "original": "03-rfm-quantile-333-555-1(5).ipynb",
+    "repository": "notebooks/03_rfm_comparison.ipynb",
+    "sha256_uploaded": "9cad4f3c69b23c7739a53356e7d75a440fb83436d0c0cbc0f15d7bef1528d840",
+    "outputs_removed": true
+  },
+  {
+    "original": "05-lifecycle-eda-insights(2).ipynb",
+    "repository": "notebooks/05_lifecycle.ipynb",
+    "sha256_uploaded": "e2f21d155818a623c08d06ec0a56c7cd482fe0837c59ac570013c4f66b52673c",
+    "outputs_removed": true
+  },
+  {
+    "original": "06-affinity-rfm-lifecycle(1).ipynb",
+    "repository": "notebooks/06_affinity.ipynb",
+    "sha256_uploaded": "79cdd584403d1b26704e40460c7e25fa757ef9ded2cf260f60c021ec10383051",
+    "outputs_removed": true
+  },
+  {
+    "original": "07-clv-proxy(2).ipynb",
+    "repository": "notebooks/07_clv_proxy.ipynb",
+    "sha256_uploaded": "ff81597accac792531e3545022a55e95bfa5d6ece45928725ea704475cd02cd6",
+    "outputs_removed": true
+  },
+  {
+    "original": "08-persona-santander (3).ipynb",
+    "repository": "notebooks/08_persona_rules.ipynb",
+    "sha256_uploaded": "360ce97a82e474d12bf37dc8650692d044513c9f9a15add8fc110b92f7cbf4ca",
+    "outputs_removed": true
+  },
+  {
+    "original": "09-persona-eda-alternatives (3).ipynb",
+    "repository": "notebooks/09_persona_alternatives.ipynb",
+    "sha256_uploaded": "924b7ada009ad8c3adb5215356cf6be1cabe9aef8ae68ef428e821eb49ba83a6",
+    "outputs_removed": true
+  },
+  {
+    "original": "10-persona-decision-tree (2).ipynb",
+    "repository": "notebooks/10_persona_tree.ipynb",
+    "sha256_uploaded": "9cd62c2c1148eb781fbf4942803adedcd811e528f8e04699b24981bd61d43c2c",
+    "outputs_removed": true
+  },
+  {
+    "original": "10-persona-rfm-decision-tree(1).ipynb",
+    "repository": "notebooks/10b_persona_fm_experiments.ipynb",
+    "sha256_uploaded": "71ffeddeba56ab1ec52fb5b7ccb8aa278158d4d24a3f1025bc1cf7a3a1efc597",
+    "outputs_removed": true
+  },
+  {
+    "original": "11-persona-lifecycle (2).ipynb",
+    "repository": "notebooks/11_persona_lifecycle.ipynb",
+    "sha256_uploaded": "17e5846487e8cb08a4c60790cce80e0e5ec4a2c530e824e79fa7e2ecdd5f5d71",
+    "outputs_removed": true
+  },
+  {
+    "original": "12-persona-clv (1).ipynb",
+    "repository": "notebooks/12_persona_clv.ipynb",
+    "sha256_uploaded": "885e2e2013b41419e41c41813c67a0840a0e30de15dadd141eb41c8968022e71",
+    "outputs_removed": true
+  },
+  {
+    "original": "13-persona-affinity(1).ipynb",
+    "repository": "notebooks/13_persona_affinity.ipynb",
+    "sha256_uploaded": "d58a611fd54b2bd1597985c00688329f6168e7692dacb6f92440fdfc43ed3052",
+    "outputs_removed": true
+  },
+  {
+    "original": "14-persona-demographics (1).ipynb",
+    "repository": "notebooks/14_persona_demographics.ipynb",
+    "sha256_uploaded": "a5e919ce156349f7a405cfc2aff4f93aae00a522d7f9680c84e9424735aca0ea",
+    "outputs_removed": true
+  }
+]

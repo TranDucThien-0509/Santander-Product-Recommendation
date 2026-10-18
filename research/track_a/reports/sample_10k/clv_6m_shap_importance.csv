@@ -1,0 +1,10 @@
+feature,mean_abs_shap,explained_n,link
+n_products,0.4482205201677465,200,log_expected_acquisitions
+R,0.36068148822548596,200,log_expected_acquisitions
+antiguedad,0.2905479823191202,200,log_expected_acquisitions
+M_group_points,0.20365624615894834,200,log_expected_acquisitions
+age,0.10006430293229643,200,log_expected_acquisitions
+renta,0.07120226816956192,200,log_expected_acquisitions
+observed_pairs,0.05324747375799992,200,log_expected_acquisitions
+relationship_age_months,0.049285197693599535,200,log_expected_acquisitions
+F_event_months,0.012629179358558042,200,log_expected_acquisitions

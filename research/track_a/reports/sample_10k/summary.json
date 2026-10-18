@@ -1,0 +1,162 @@
+{
+  "source_run": "mlflow_sample_10k_20261018T034306294124Z_96c55699",
+  "sample_scope": "fixed customer IDs, all source months",
+  "eda": {
+    "rows": 143126,
+    "months": 17,
+    "customers": 10000,
+    "first_month": "2015-01",
+    "last_month": "2016-05",
+    "cardinality": {
+      "canal_entrada": 102,
+      "segmento": 3,
+      "pais_residencia": 21,
+      "indrel_1mes": 9
+    },
+    "missing_share": {
+      "age": 0.001355449044897503,
+      "renta": 0.20374355463018598,
+      "cod_prov": 0.005470704134818272,
+      "indrel_1mes": 0.010054078224780962,
+      "canal_entrada": 0.013212134762377207,
+      "segmento": 0.01326802956835236,
+      "pais_residencia": 0.001355449044897503,
+      "ind_actividad_cliente": 0.001355449044897503,
+      "indfall": 0.001355449044897503,
+      "antiguedad": 0.0
+    },
+    "absent_optional_columns": [],
+    "mean_owned_products": 1.467210191795381,
+    "mean_absence_or_incomplete_rate": 0.002293554666461568
+  },
+  "events": {
+    "acquisition_rows": 6062,
+    "partitions": 16
+  },
+  "lifecycle": {
+    "At-risk": 5685,
+    "Active": 4062,
+    "Churned": 165,
+    "New": 87,
+    "Win-back": 1
+  },
+  "clv": [
+    {
+      "method": "BGNBD",
+      "horizon_months": 6,
+      "origin": "2015-11",
+      "fit_status": "fit",
+      "n": 9417,
+      "MAE": 0.452217505205209,
+      "RMSE": 0.6875387667922355,
+      "actual_mean": 0.2369119677179569,
+      "predicted_mean": 0.42193660383255926,
+      "capture10": 0.5322405071396554,
+      "calibration_ratio": 1.7809847594312913
+    },
+    {
+      "method": "BGNBD_GammaGamma",
+      "horizon_months": 6,
+      "origin": "2015-11",
+      "fit_status": "fit",
+      "n": 9417,
+      "MAE": 0.460582734195154,
+      "RMSE": 0.6919392501116962,
+      "actual_mean": 0.2369119677179569,
+      "predicted_mean": 0.4511200747864089,
+      "capture10": 0.5087404751232631,
+      "calibration_ratio": 1.904167523201978
+    },
+    {
+      "method": "gradient_boosting",
+      "horizon_months": 6,
+      "origin": "2015-11",
+      "fit_status": "fit",
+      "n": 9417,
+      "MAE": 0.33931587673464725,
+      "RMSE": 0.6564282003734216,
+      "actual_mean": 0.2369119677179569,
+      "predicted_mean": 0.34052206122585577,
+      "capture10": 0.5629762438368444,
+      "calibration_ratio": 1.437335836200755
+    },
+    {
+      "method": "historical_mean",
+      "horizon_months": 6,
+      "origin": "2015-11",
+      "fit_status": "fit",
+      "n": 9417,
+      "MAE": 0.45995642078141036,
+      "RMSE": 0.7672386700899467,
+      "actual_mean": 0.2369119677179569,
+      "predicted_mean": 0.2978037167869759,
+      "capture10": 0.10003185727938833,
+      "calibration_ratio": 1.2570226808529594
+    }
+  ],
+  "clv_audit": {
+    "origin": "2015-11",
+    "label_end": "2016-05",
+    "horizon_months": 6,
+    "train_origins": [
+      "2015-03",
+      "2015-04",
+      "2015-05"
+    ],
+    "max_train_label_month": "2015-11",
+    "train_rows": 19533,
+    "current_complete_n": 9507,
+    "labeled_n": 9417,
+    "label_coverage": 0.9905332912590723,
+    "scope": "fixed-configuration development backtest; no 6m validation selection",
+    "monetary_proxy": "acquisitions per repeat event-month, unit product weights = 1; not revenue or profit",
+    "explanation": {
+      "method": "SHAP TreeExplainer",
+      "sample_n": 200,
+      "link": "log_expected_acquisitions",
+      "additive_reconstruction_verified": true
+    },
+    "inputs": [
+      "R",
+      "F_event_months",
+      "M_group_points",
+      "n_products",
+      "observed_pairs",
+      "age",
+      "renta",
+      "antiguedad",
+      "relationship_age_months"
+    ],
+    "twelve_month_status": "not enough calendar history for causal supervised train/validation/test"
+  },
+  "persona": {
+    "k": 5,
+    "silhouette": 0.2700850083643476,
+    "min_cluster_share": 0.032081624066477334,
+    "inertia": 54764.91405092167
+  },
+  "affinity": [
+    {
+      "method": "coownership_confidence",
+      "origin": "2016-04",
+      "n_all": 9710,
+      "n_buyers": 300,
+      "buyer_prevalence": 0.030895983522142123,
+      "map_at_7_all": 0.018369480816700177,
+      "map_at_7_buyers": 0.5945588624338624,
+      "recall_at_7_buyers": 0.9308333333333333,
+      "recommendation_coverage": 1.0
+    },
+    {
+      "method": "past_acquisition_popularity",
+      "origin": "2016-04",
+      "n_all": 9710,
+      "n_buyers": 300,
+      "buyer_prevalence": 0.030895983522142123,
+      "map_at_7_all": 0.020546339888512906,
+      "map_at_7_buyers": 0.6650165343915343,
+      "recall_at_7_buyers": 0.9777777777777779,
+      "recommendation_coverage": 1.0
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+persona_group,lifecycle,known_n,predicted_n,clv_coverage
+NoCurrentPersona,Active,5852,5852,1.0
+NoCurrentPersona,At-risk,9973,0,0.0
+NoCurrentPersona,Churned,15219,0,0.0
+NoCurrentPersona,New,8533,8533,1.0
+NoCurrentPersona,Win-back,25,25,1.0
+P1,Active,688617,688617,1.0
+P1,Win-back,11,11,1.0
+P2,Active,33448,33448,1.0
+P3,Active,84565,84565,1.0
+P3,Win-back,7,7,1.0
+P4,Active,20195,20195,1.0
+P4,Win-back,1,1,1.0
+P5,Active,62588,62588,1.0
+P6,Active,27611,27611,1.0

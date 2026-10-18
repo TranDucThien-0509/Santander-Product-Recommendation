@@ -1,0 +1,7 @@
+horizon,target,ranking_method,validation_capture10,quantity_method,validation_RMSE
+1,event_months,ML_full,0.6439,ML_RFM_stable,0.1737
+1,acquisitions,ML_RFM_stable,0.6401,ML_full,0.2433
+1,points,ML_RFM_stable,0.6401,ML_full,0.2433
+3,event_months,ML_RFM_only,0.5218,ML_RFM,0.3051
+3,acquisitions,ML_RFM_only,0.5336,ML_RFM,0.4218
+3,points,ML_RFM_only,0.5336,ML_RFM,0.4218

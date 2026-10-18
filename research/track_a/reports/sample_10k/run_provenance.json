@@ -1,0 +1,17 @@
+{
+  "implementation_sha256": {
+    "__init__.py": "75a4bda1a12d1b44e607cb9d1bca50352133da38f811148cdb7ee4628c5e059d",
+    "affinity.py": "eda67088b735e6c6c969bad2809ef5c2071ab3b0c261eb0ab1ca794182bf59cf",
+    "clv.py": "0286297129dcd44ccd28cf2cd9ed701340bb150542429eaebd22917176454446",
+    "data.py": "8fa480d162a877f498b04bc7a46e48a1454b57d4f5cb86248b85261714fb8bb4",
+    "eda.py": "28b1a868ac291b59494063b79ee69e31cd09a790159738e4cccbe5eabb66621d",
+    "run.py": "f3895723195a3cb8b6ec756ad76886fc8b93aa355f4689e826dc55f8789488f1",
+    "segmentation.py": "bd109672bea9c6d651d5ce6e884a5179d2a4021c046058e52bc12cb91a40c38a",
+    "storage.py": "6e7510c8652b8ab003f1b236d03255b5b8c4830b0adeeca705470bc7f7495231"
+  },
+  "source_run": "mlflow_sample_10k_20261018T034306294124Z_96c55699",
+  "source_config_sha256": "151a4d067a4a29d524a538a2722fba208301e90d1575bbe877c8e98e4f41608a",
+  "source_cache_manifest_sha256": "f8fa47c3fb958c189e228040d602f7de1cf18a5bd66eac3a7dab65b491eacf04",
+  "source_point_in_time_audit_sha256": "acd29084a49efd01b2894079b2a5b1c3924bef88be233838073b02c777bfd431",
+  "raw_sha256": "d617a26fa870bea4800fac3b48af882581a7494e095aaae42a773cf50a63d105"
+}

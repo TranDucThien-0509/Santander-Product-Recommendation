@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "santander-customer-analytics"
+version = "0.1.0"
+description = "Validated handoff for Santander RFM, lifecycle, acquisition-proxy and persona analytics"
+requires-python = ">=3.10"
+dependencies = ["pandas>=2.1,<3", "numpy>=1.26,<3", "pyarrow>=14"]
+
+[project.optional-dependencies]
+notebooks = ["jupyter", "matplotlib", "seaborn", "missingno", "scikit-learn", "lifetimes", "joblib"]
+evidence = ["lxml"]
+
+[project.scripts]
+santander-wrap = "santander_wrap.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
