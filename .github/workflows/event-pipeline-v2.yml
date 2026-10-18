@@ -48,3 +48,5 @@ jobs:
           cache-to: type=gha,mode=max,scope=event-v2
       - name: Verify container runtime imports
         run: docker run --rm santander-event:${{ github.sha }} python -m pipeline.run_pipeline --help
+      - name: Verify MLflow importer runtime
+        run: docker run --rm santander-event:${{ github.sha }} python -m pipeline.import_mlflow --help

@@ -40,6 +40,13 @@
     "n_jobs": 4,
     "seed": 42
   },
+  "tracking": {
+    "enabled": false,
+    "tracking_uri": null,
+    "experiment_name": "santander-event-v2",
+    "artifact_location": null,
+    "log_models": false
+  },
   "run": {
     "name": "all_features",
     "refit_for_forecast": true,

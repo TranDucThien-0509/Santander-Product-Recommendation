@@ -92,4 +92,9 @@ Không trộn điểm validation/test với điểm của model refit. Muốn so
 
 GCS FUSE có thể tốn I/O khi đọc lại nhiều tháng. CLV fit lại từng origin và affinity dùng cửa sổ quá khứ nên bản v1 ưu tiên đúng thời gian, chưa tối ưu mọi lần đọc. Có thể chạy trên VM với ổ local, sau đó copy output lên bucket, nếu muốn kiểm soát cache/I/O.
 
-Chưa có orchestration Vertex Pipelines/Kubeflow, model registry, endpoint online, MLflow, drift monitor hay tự động chọn model. Một CustomJob chạy một pipeline Python end-to-end. Không cần GPU để dùng backend mặc định này.
+Chưa có orchestration Vertex Pipelines/Kubeflow, model registry, endpoint online, drift monitor hay tự động chọn model. Một CustomJob chạy một pipeline Python end-to-end. Không cần GPU để dùng backend mặc định này.
+
+
+## MLflow trên Vertex
+
+Xem [MLFLOW.md](MLFLOW.md). Bật `tracking.enabled=true` và truyền `MLFLOW_TRACKING_URI` trỏ tới tracking server mà worker truy cập được; cấu hình authentication bằng environment/secret của job. Không đặt SQLite trên `/gcs/`. Tracking mặc định tắt; các cloud run trong CLOUD_RUNS.md trước tích hợp này không ghi MLflow trực tiếp và có thể import lịch sử bằng CLI.

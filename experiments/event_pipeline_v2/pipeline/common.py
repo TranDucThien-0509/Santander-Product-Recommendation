@@ -116,6 +116,8 @@ def validate_config(c):
     for section in ["data", "split", "feature_groups", "meta_models", "model", "run"]:
         require(isinstance(c.get(section), dict), f"missing config section: {section}")
     features_for(c["feature_groups"])
+    from .mlflow_tracking import validate_tracking
+    validate_tracking(c.get("tracking", {}))
     for key in ["refit_for_forecast", "ablation"]:
         require(type(c["run"][key]) is bool, f"run.{key} must be a JSON boolean")
     require(
