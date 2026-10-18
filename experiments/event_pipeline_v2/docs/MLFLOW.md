@@ -43,3 +43,19 @@ python -m pipeline.import_mlflow --run-dir "C:/absolute/copied-run" --tracking-u
 Các run được gắn `tracking.mode=historical_import`, URI gốc và revision gốc. Thời gian MLflow là thời điểm import; tên run gốc giữ mốc thời gian chạy, thời gian xử lý lấy từ resource metrics gốc. Import lặp lại cùng source URI trong cùng experiment trả về parent FINISHED đã có. Import thất bại có thể thử lại; không tự hợp nhất các run đang import đồng thời. Chỉ import source có completion manifest thành công, đủ metrics và variant khớp comparison. Dùng `--log-models` khi đã tải model và muốn lưu thêm pickle.
 
 Các cloud run sample/full trong [CLOUD_RUNS.md](CLOUD_RUNS.md) diễn ra trước tích hợp MLflow; import không có nghĩa đã chạy lại full data với code tracking mới.
+
+## Kết quả kiểm chứng tích hợp — 2026-10-18
+
+- MLflow 3.17.1 trên Windows, Python 3.12: 16 synthetic tests pass. Test SQLite dùng NullPool để đóng file trước khi dọn thư mục tạm trên Windows.
+- Chạy trực tiếp sample cố định 10.000 khách / 143.126 snapshots / 17 tháng, các nhóm feature bật, refit forecast bật. Run hoàn thành với MLflow enabled; validation MAP@7_all 0.023296491409289674, test 0.025515484772693834; 9.758 forecast, 0 fallback và 0 ownership violations. Đây là smoke test tích hợp, không dùng để chọn lại variant.
+- Feature build 76,30 giây / peak RSS 370,60 MiB; ranker fit + validation/test 12,68 giây / 185,65 MiB. Đây là số đo local của lần này; thời gian không so trực tiếp với môi trường cloud.
+- Import cloud sample cũ thành 1 parent + 7 children; cloud full cũ thành 1 parent + 1 child. Toàn bộ aggregate validation/test metrics khớp JSON gốc; import lặp trả lại cùng parent ID. Revision của hai nguồn cloud là `9879bc55c1149095e4842cad6dcacdf38b9015a0`.
+- Kiểm tra HTTP tracking API và `/health`: HTTP 200; experiment `santander-event-v2` có 3 parent + 9 child runs, tất cả FINISHED. Database/artifacts nằm local, không commit vào Git.
+
+| Nguồn | Parent run ID | Loại |
+|---|---|---|
+| Sample cloud B0–B6 | `b29138baf12248e0b61c6e738f2c8758` | historical_import |
+| Full cloud baseline + CLV | `a9fe171333174d3ab676345dbdc811d5` | historical_import |
+| Sample 10k chạy mới | `7de3d16e5ae6432c881605ab659d5eab` | live |
+
+Code của live run: `22645b4326a7d705beadd59143b4b6bbabb2a318`. Full data chưa chạy lại với MLflow enabled; full metrics trên UI được nhập từ cloud run hoàn thành trước đây.
