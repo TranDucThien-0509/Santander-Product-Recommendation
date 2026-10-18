@@ -37,7 +37,22 @@ CLV 6m mặc định: source origin 2015-11, nhãn đến 2016-05; train origins
 
 12m không có đủ lịch sử để supervised train/validation/test đáng tin. Không tạo metric giả hoặc tự đổi tên horizon 1m thành 6/12m.
 
-## Export processed lên S3
+## Storage đã chọn: GCS thay AWS S3
+
+Chủ repo xác nhận giữ GCS. Đây là sai khác so với yêu cầu AWS S3 trong brief; xem [GCS_STORAGE.md](GCS_STORAGE.md) và receipt ở reports/sample_10k/gcs_storage_receipt.json.
+
+Từ thư mục v2:
+
+```bash
+python ../../research/track_a/scripts/publish_gcs.py \
+  --manifest /absolute/work/track-a/new-run/processed/processed_manifest.json \
+  --destination gs://YOUR_BUCKET/track-a/NEW_RUN_ID \
+  --apply --receipt /absolute/work/gcs_storage_receipt.json
+```
+
+Không có `--apply` thì chỉ kiểm tra local manifest/hash và in kế hoạch. Lệnh apply chỉ copy file trong manifest sang prefix mới, tải lại kiểm size/SHA256, rồi publish manifest cuối. `--if-generation-match=0` ngăn ghi đè object cũ; không đổi IAM/ACL. Google Cloud CLI dùng tài khoản đã đăng nhập, không ghi token/key vào code.
+
+## Export S3 tùy chọn, chưa sử dụng trong dự án này
 
 ```bash
 python -m track_a.storage \
@@ -47,7 +62,7 @@ python -m track_a.storage \
 
 Lệnh trên chỉ kiểm tra hash và in kế hoạch. Thêm `--apply` để thực sự upload sau khi chọn bucket/prefix. Boto3 dùng role/profile/default credential chain; không đưa access key vào repo. Chỉ các file generated được liệt kê trong manifest được upload, không tự quét raw/model/log.
 
-Storage GCP hiện có vẫn là bằng chứng chạy GCS; exporter S3 có unit test bằng client giả nhưng **chưa phải receipt upload AWS thật**. Trạng thái yêu cầu storage nằm trong TRACK_A_AUDIT.md. Không tạo thêm cloud compute để chạy phần bổ sung sample này.
+Exporter S3 vẫn được giữ như tùy chọn có test client giả. Dự án hiện chọn GCS và không tuyên bố đã upload AWS. Trạng thái và bằng chứng nằm trong GCS_STORAGE.md/TRACK_A_AUDIT.md. Không tạo thêm cloud compute cho lần publish processed sample.
 
 ## Test
 

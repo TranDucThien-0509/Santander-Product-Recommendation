@@ -11,7 +11,8 @@ Apriori/item2vec, 6 persona card và package bàn giao. Xem
 và [feature store spec](research/track_a/docs/FEATURE_STORE_SPEC.md).
 Các bổ sung chạy lại bằng CLI `track_a` ở thư mục v2, có CI riêng và MLflow
 experiment `santander-track-a`. Kết quả sample, nghiên cứu gốc và full-cloud
-recommendation được ghi rõ phạm vi; S3 thật cần bucket/prefix và receipt upload.
+recommendation được ghi rõ phạm vi. Chủ repo chọn **GCS thay AWS S3**;
+xem [quyết định storage](research/track_a/docs/GCS_STORAGE.md) và receipt kiểm chứng.
 
 ## Configurable event pipeline v2
 

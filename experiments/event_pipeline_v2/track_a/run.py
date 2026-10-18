@@ -118,7 +118,7 @@ def report(out, summary):
         "\nAffinity 24×24 có count/support/confidence/lift. Benchmark next-month ở affinity_next_month_benchmark.csv; Apriori bộ ba và item2vec SGNS gốc có notebook 06 cùng benchmark/provenance trong research/track_a. Ma trận tháng cuối chỉ mô tả, không chấm lên nhãn quá khứ.\n",
         "## Lifecycle và bàn giao\n",
         "Giữ presence_lifecycle của v2 và thêm lifecycle dùng activity/death ở bảng export. indfall=S → Churned; observed inactive → At-risk trừ New/Win-back; thiếu activity/death không giả là known/eligible. Sự biến mất chỉ là panel absence.",
-        "\nProcessed dataset và event partitions nằm private ở processed/. feature_store_spec.json mô tả entity, schema, naming, version, availability và TTL. Chỉ publish processed_manifest.json cùng các file được liệt kê, không đưa customer-level rows lên GitHub. S3 upload phải có destination; chưa có receipt thì chưa coi hoàn tất yêu cầu S3.\n",
+        "\nProcessed dataset và event partitions nằm private ở processed/. feature_store_spec.json mô tả entity, schema, naming, version, availability và TTL. Chỉ publish processed_manifest.json cùng các file được liệt kê, không đưa customer-level rows lên GitHub. Provider storage theo lựa chọn triển khai riêng; receipt xác minh cloud phải được ghi riêng. Upload GCS không được ghi thành AWS S3.\n",
         "## Giới hạn và trạng thái\n",
         "- Sample này gồm 10k ID cố định giữ toàn bộ tháng; không suy rộng full data.",
         "- Nhãn CLV dài hạn chỉ có khi đủ mọi cặp tương lai, nên có selection bias.",

@@ -42,6 +42,7 @@ Lifecycle presence: mới có relationship trong một tháng → New; quay lạ
 - Kiểm tra unique keys, binary ownership, nonnegative F, R null khi chưa event, đầy đủ product order, training-label cutoff và raw/cache/run manifest.
 - CLV horizon H chỉ có nhãn khi quan sát đủ mọi cặp tương lai; thiếu một cặp → censored, không điền 0.
 - Processed Parquet và product-level event nằm trong artifact private. GitHub chỉ giữ schema, báo cáo và aggregate.
+- Storage dự án: **GCS thay AWS S3 theo xác nhận chủ repo**; đây là sai khác với brief. Xem [GCS_STORAGE.md](GCS_STORAGE.md).
 - `processed_manifest.json` liệt kê chính xác các file được xuất, size và SHA256. Exporter xác minh toàn bộ trước upload; manifest được publish cuối. AWS dùng default credential chain, server-side encryption và checksum; không có public ACL hoặc key trong config.
 - Source raw actual trong dự án khoảng 2,3 GB / 13.647.309 dòng; số ~13 GB trong brief là ước lượng, không phải kích thước đã đo của file đang dùng.
 

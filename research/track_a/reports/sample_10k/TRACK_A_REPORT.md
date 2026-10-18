@@ -42,7 +42,7 @@ Affinity 24×24 có count/support/confidence/lift. Benchmark next-month ở affi
 
 Giữ presence_lifecycle của v2 và thêm lifecycle dùng activity/death ở bảng export. indfall=S → Churned; observed inactive → At-risk trừ New/Win-back; thiếu activity/death không giả là known/eligible. Sự biến mất chỉ là panel absence.
 
-Processed dataset và event partitions nằm private ở processed/. feature_store_spec.json mô tả entity, schema, naming, version, availability và TTL. Chỉ publish processed_manifest.json cùng các file được liệt kê, không đưa customer-level rows lên GitHub. S3 upload phải có destination; chưa có receipt thì chưa coi hoàn tất yêu cầu S3.
+Processed dataset và event partitions nằm private ở processed/. feature_store_spec.json mô tả entity, schema, naming, version, availability và TTL. Chỉ publish processed_manifest.json cùng các file được liệt kê, không đưa customer-level rows lên GitHub. Storage đã chọn **GCS thay AWS S3** theo xác nhận chủ repo; đây là sai khác với brief. Processed dataset đã upload và kiểm SHA256; xem [quyết định storage](../../docs/GCS_STORAGE.md) và [receipt](gcs_storage_receipt.json).
 
 ## Giới hạn và trạng thái
 

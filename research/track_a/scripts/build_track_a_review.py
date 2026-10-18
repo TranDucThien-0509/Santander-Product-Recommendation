@@ -100,20 +100,23 @@ display(Markdown((REP / 'persona_cluster_cards.md').read_text(encoding='utf-8'))
     md("""## 7. Feature spec, reproducibility và storage (1 phút)
 Entity customer_id, grain customer/month, snake_case, source versions, actual availability và TTL 45 ngày tối đa/invalidate on next snapshot. Không join label tương lai vào feature, không carry-forward qua panel absence.
 
-Processed customer table/event partitions không đưa lên GitHub. `processed_manifest.json` giữ file list/size/SHA256; S3 exporter dry-run mặc định và cần bucket/prefix để upload thật. GCS của recommendation pipeline không tự được coi là đáp ứng yêu cầu AWS S3.
+Processed customer table/event partitions không đưa lên GitHub. Chủ repo đã chọn **GCS thay AWS S3**; đây là sai khác so với brief. `processed_manifest.json` giữ file list/size/SHA256; GCS publisher tải lại kiểm hash và publish manifest cuối, không đổi IAM/ACL. Xem docs/GCS_STORAGE.md và receipt public (metadata, không chứa customer rows).
 
 MLflow experiment `santander-track-a`; log aggregate, không log raw hoặc customer-level records.""")
     code("""spec = json.loads((REP / 'feature_store_spec.json').read_text())
 display(pd.DataFrame(spec['schema']).head(20))
 display(pd.DataFrame([{'view':spec['feature_view'], 'ttl':spec['ttl'], 'refresh':spec['refresh'],
     'mlflow_experiment_id':completed['mlflow']['experiment_id'],
-    'mlflow_parent_run':completed['mlflow']['parent_run_id']}]))""")
+    'mlflow_parent_run':completed['mlflow']['parent_run_id']}]))
+storage = json.loads((REP / 'gcs_storage_receipt.json').read_text())
+assert storage['status'] == 'verified'
+display(pd.DataFrame([{k:storage[k] for k in ['provider','status','destination','file_count','data_bytes']}]))""")
     md("""## 8. Kết luận và giới hạn (1 phút)
 - RFM/CLV là proxy khi không có transaction hoặc monetary thật; không dùng từ lợi nhuận đã đo.
 - 6m có một development backtest với cấu hình cố định, chưa là validation độc lập/holdout. 12m chưa đủ lịch sử cho supervised train/validation/test đáng tin.
 - BG/NBD/Gamma-Gamma dựa trên giả định retail; phần lớn cohort dùng fallback. Catalog hữu hạn/reopen/thời gian tháng là giới hạn.
 - Selection bias do cần future complete pairs; cluster stability không phải marketing uplift.
-- Bộ nghiên cứu và benchmark sample đã có; upload S3 thật cần destination và receipt.
+- Storage dùng GCS theo xác nhận chủ repo, có receipt kiểm hash; **khác yêu cầu AWS S3**, không ghi thành S3 đã hoàn tất.
 
 **Tài liệu hội đồng:** [đối chiếu track](../docs/TRACK_A_AUDIT.md), [report](../reports/sample_10k/TRACK_A_REPORT.md), [6 persona rule cards](../docs/04_persona_cards.md), [feature spec](../docs/FEATURE_STORE_SPEC.md), [cách chạy lại](../docs/REPRODUCE.md).""")
     for index, cell in enumerate(cells):

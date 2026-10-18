@@ -22,7 +22,7 @@ README root còn mô tả full/MLflow như việc chưa làm và dùng từ “g
 | RFM quantile/KMeans/rule và stability | Notebook 01/03 gốc và [benchmark evidence](02_benchmarks.md); bổ sung [rfm_tiering_spec.json](../reports/sample_10k/rfm_tiering_spec.json), geometry và **membership** ARI/stay rate fit-fixed trên sample |
 | Lifecycle dùng activity/disappearance/death | Giữ presence_lifecycle v2; export thêm activity/death-aware lifecycle và cross_sell_eligible; định nghĩa/precedence trong [feature spec](FEATURE_STORE_SPEC.md). Missing status không bị giả thành active/eligible |
 | Processed dataset + dictionary | Đã materialize private `processed/customer_features_latest.parquet`, `lifecycle_latest.parquet`, acquisition events, schema/spec/manifest. Schema public: [feature_store_spec.json](../reports/sample_10k/feature_store_spec.json); định nghĩa gốc: [data_dictionary.md](data_dictionary.md) |
-| Processed dataset trên **AWS S3** | **Còn cần bucket/prefix/region và upload receipt thật.** Bổ sung exporter boto3, hash validation, encryption, publish manifest cuối; client giả đã test. GCS hiện có không được ghi thành AWS S3. Chủ repo chưa cung cấp destination tại lúc lập báo cáo |
+| Processed dataset trên **AWS S3** | **Đổi sang GCS theo lựa chọn chủ repo**, khác yêu cầu AWS S3 của brief. Processed sample đã upload, tải lại kiểm size/SHA256; [quyết định + vị trí](GCS_STORAGE.md), [receipt 20 object](../reports/sample_10k/gcs_storage_receipt.json). Không triển khai AWS S3 |
 
 ## Checkpoint 2 — CLV, affinity, MLflow
 
@@ -73,7 +73,9 @@ Không chọn lại model hoặc quảng cáo uplift có ý nghĩa thống kê t
 - Sample mới giữ hash code/raw/config/source audit trong [run_provenance.json](../reports/sample_10k/run_provenance.json); [environment.json](../reports/sample_10k/environment.json) ghi versions.
 - Raw/processed Parquet, pickle model và config local nằm ngoài Git. Bản local giữ fitted RFM/persona transform+model để tái sử dụng; chỉ load pickle tin cậy.
 
-## Phần chưa thể đánh dấu hoàn tất
+## Sai khác storage đã được chủ repo chấp nhận
 
-**AWS S3 upload thật:** cần URI bucket/prefix và region hoặc quyết định chấp nhận GCS thay AWS. Exporter/dataset/spec đã chuẩn bị; test client giả không thay cho upload receipt.
+Chủ repo đã xác nhận **giữ GCS thay AWS S3** và phê duyệt payload/prefix. Đã publish 19 processed data/spec files và manifest cuối vào bucket GCS hiện có, tải lại đối chiếu size/SHA256. Xem [GCS_STORAGE.md](GCS_STORAGE.md). Đây là thay thế nền tảng, không đánh dấu yêu cầu AWS S3 là đã triển khai.
+
+Bổ sung **3 test GCS publisher** pass: dry-run không network, chặn file/path không hợp lệ trước upload, đọc đúng metadata nested/flat của gcloud. Tổng test local: 24 v2 + 8 wrap gốc + 3 GCS = **35**; notebook demo được execute lại sau cập nhật storage.
 Các việc production như serving, campaign A/B, Model Registry hay triển khai Feature Store không phải deliverable của track này và không được tự gán là đã làm.
