@@ -286,7 +286,7 @@ class CustomerStore:
     def profile(self, customer_id, month, window=6):
         if month not in self.months or not 1 <= window <= 24:
             raise ValueError("Tháng hoặc số tháng xem không hợp lệ")
-        if customer_id not in self.lifecycles[month].index:
+        if not self.knows_customer(customer_id, month):
             raise KeyError("Khách chưa xuất hiện tính đến tháng đã chọn")
         months = [m for m in self.months if shift(month, 1-window) <= m <= month]
         timeline = [self.snapshot(customer_id, m) for m in months]
@@ -294,13 +294,13 @@ class CustomerStore:
         policy = care_policy(current)
         recommendations = []
         if current["cross_sell_eligible"] and (current["observed_pairs"] or 0) >= 3 and current["clv_1m"] is not None:
-            row = self.frames[month].loc[customer_id]
+            row = self.feature_row(customer_id, month)
             for p in PRODUCTS:
                 score = scalar(row.get("affinity_" + p))
                 if row[p] == 0 and score is not None and np.isfinite(score) and score > 0:
                     recommendations.append(dict(product=p, name=PRODUCT_NAMES[p], score=float(score)))
             recommendations.sort(key=lambda r: (-r["score"], r["product"]))
-        customer_row = self.frames[month].loc[customer_id] if current["is_observed"] else pd.Series(dtype=object)
+        customer_row = self.feature_row(customer_id, month) if current["is_observed"] else {}
         customer_demographics = {name: scalar(customer_row.get(col)) for col, name in [
             ("age", "age"), ("renta", "income"), ("antiguedad", "tenure"),
             ("canal_entrada", "channel"), ("segmento", "segment")
@@ -343,3 +343,9 @@ class CustomerStore:
                         "Không có chi phí, biên lợi nhuận và uplift chiến dịch để kết luận ROI hay khách sẽ sinh lời.",
                         "Không dự báo 6 tháng bằng cách nhân CLV 1 tháng; chưa có mô hình tương lai cá nhân dài hạn được phục vụ ở đây.",
                         "Lịch sử panel bị giới hạn bên trái; F và sự kiện không đại diện toàn bộ đời khách."])
+
+    def knows_customer(self, customer_id, month):
+        return customer_id in self.lifecycles[month].index
+
+    def feature_row(self, customer_id, month):
+        return self.frames[month].loc[customer_id]

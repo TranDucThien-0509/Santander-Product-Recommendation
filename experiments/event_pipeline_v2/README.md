@@ -165,7 +165,8 @@ Phần bổ sung nằm trong package `track_a/`, dependencies riêng `requiremen
 as-of month, lịch sử tùy chọn/6/12/toàn bộ, RFM, lifecycle, CLV-proxy 1m, thông tin khách và nhóm hành vi P,
 affinity đã mask ownership, diễn giải và heuristic ưu tiên chăm sóc. Có export
 JSON về máy. Không xuất đề xuất cho khách vắng/inactive/indfall=S/thiếu dữ liệu;
-không dùng tháng tương lai hoặc xuất cụm C trong hồ sơ. Bản đang dùng sample 10k,
+không dùng tháng tương lai hoặc xuất cụm C trong hồ sơ. Có store trên ổ đĩa phục
+vụ toàn bộ khách từ completed full v2 run và chế độ sample 10k cũ;
 không kết luận ROI hoặc lợi nhuận dài hạn. Xem [cách chạy và chính sách](docs/CUSTOMER_360.md).
 
 Tab **Mở sản phẩm theo tháng** tổng hợp khách/lượt mở từ các cặp snapshot đầy

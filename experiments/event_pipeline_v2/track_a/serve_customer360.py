@@ -81,15 +81,22 @@ def handler_for(store):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-run", required=True)
-    parser.add_argument("--cache-dir", required=True)
-    parser.add_argument("--track-a-run", required=True)
+    parser.add_argument("--source-run")
+    parser.add_argument("--cache-dir")
+    parser.add_argument("--track-a-run")
+    parser.add_argument("--index", help="Completed on-disk Customer 360 index for full data")
     parser.add_argument("--port", type=int, default=8501)
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535:
         parser.error("Use a port between 1024 and 65535")
     print("Checking source provenance and loading customer history...", flush=True)
-    store = CustomerStore.load(args.source_run, args.cache_dir, args.track_a_run)
+    if args.index:
+        from track_a.customer360_index import IndexedCustomerStore
+        store = IndexedCustomerStore(args.index)
+    else:
+        if not all([args.source_run, args.cache_dir, args.track_a_run]):
+            parser.error("Provide --index or all of --source-run, --cache-dir, --track-a-run")
+        store = CustomerStore.load(args.source_run, args.cache_dir, args.track_a_run)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler_for(store))
     server.daemon_threads = True
     print(f"Customer 360 ready: http://127.0.0.1:{args.port} ({store.metadata()['customer_count']} customers)", flush=True)

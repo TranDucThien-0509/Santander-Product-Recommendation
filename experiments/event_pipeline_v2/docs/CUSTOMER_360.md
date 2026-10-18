@@ -22,7 +22,7 @@ sở hữu. Một khách mở 2 SP được tính là 1 khách, 2 lượt. Có t
 Khách chỉ xuất hiện lần đầu, vắng tháng trước, hoặc thiếu ownership không được
 gán lượt mở từ 0 giả định. Tháng đầu dataset (hoặc tháng không có cặp hợp lệ)
 hiển thị chưa xác định, không biến thành một tháng 0 lượt. Bảng là quan sát
-snapshot trên sample; không phải xác nhận giao dịch hay danh sách đủ điều kiện
+snapshot trên tập khách đang phục vụ; không phải xác nhận giao dịch hay danh sách đủ điều kiện
 marketing. Các cờ activity/indfall vẫn được kiểm tra riêng khi mở hồ sơ.
 
 API local `GET /api/acquisitions/summary` trả tổng hợp từng tháng;
@@ -31,7 +31,65 @@ kiện. Summary là toàn tháng; số khách kết quả/phân trang theo mã l
 và tháng sự kiện lưu trong URL để phục hồi khi tải lại; không truyền dữ liệu ra
 dịch vụ ngoài.
 
-## Chạy
+## Chạy trên toàn bộ dữ liệu
+
+Store trên ổ đĩa hỗ trợ toàn bộ khách trong completed v2 run, không nạp toàn bộ
+feature/lifecycle vào RAM. Cài `requirements.txt`, lấy các partition `features/`,
+`lifecycle/`, config/manifest/audit/completed của cùng run và raw CSV đúng nguồn.
+Không sửa đường dẫn trong config gốc. Build ghi SHA-256 của nguồn và kiểm tra
+CRC32C raw với receipt của object nguồn khi truyền `--raw-crc32c`.
+
+```powershell
+python -m track_a.customer360_index `
+  --source-run /path/to/completed-full-run `
+  --raw-csv /path/to/train_ver2.csv `
+  --raw-crc32c CHECKSUM_FROM_SOURCE_OBJECT `
+  --out artifacts/customer360-full/customers.duckdb
+
+python -m track_a.serve_customer360 `
+  --index artifacts/customer360-full/customers.duckdb --port 8501
+```
+
+Build một lần với DuckDB memory limit 512 MB, một thread và spill ra ổ đĩa;
+server chỉ đọc index với memory limit 256 MB. Đây là giới hạn memory manager
+của DuckDB, không phải trần RSS của toàn bộ Python. Index mới cần đường dẫn
+chưa tồn tại. Index lỗi/chưa có metadata success không được phục vụ.
+
+RFM, lifecycle, nhãn P và CLV 1m lấy từ source full đúng thời điểm. Phân vị CLV
+được tính lại trên cohort full cùng tháng. Affinity phục vụ được tính lại bằng
+cùng công thức temporal-ownership-smoothed-24-v1, cửa sổ/prior trong config;
+chỉ dùng cặp nhãn đến tháng chấm điểm, mask SP đang sở hữu. Kiểm thử đối chiếu
+với `pipeline.features.affinity`, không trộn điểm hay model sample vào full.
+
+Đây là mở rộng **phục vụ Customer 360** từ completed v2 full run, không đồng
+nghĩa đã chạy lại các benchmark Track A 6m, clustering, SHAP hay notebook
+nghiên cứu trên full. Các kết quả nghiên cứu sample vẫn giữ nguyên phạm vi.
+Raw, index và customer artifacts nằm local/private, không đi kèm mã nguồn.
+
+### Kiểm chứng full tại máy ngày 18/10/2026
+
+Nguồn: `full_validation_selected_20261017T200237620339Z_9e8e42ca`, cùng
+completed v2 run được ghi trong [CLOUD_RUNS.md](CLOUD_RUNS.md).
+
+| Nội dung | Kết quả |
+|---|---:|
+| Khách duy nhất đã xuất hiện đến tháng cuối | 956.645 |
+| Snapshot được quan sát | 13.647.309 |
+| Khoảng tháng | 2015-01…2016-05 (17 tháng) |
+| Lượt mở SP xác định từ cặp đầy đủ | 561.648 |
+| Tháng 2015-07: khách mở / lượt mở | 26.097 / 33.362 |
+| Dung lượng index | 972.566.528 byte |
+
+CRC32C raw local khớp receipt object nguồn. Đã mở hồ sơ một khách ngoài
+sample 10k cũ, xác minh 17 tháng, mask sở hữu, trang 1/2 không trùng khách và
+đối chiếu tổng snapshot với full run. Dashboard tại cổng 8501 đã dùng index này.
+
+Một lượt API smoke test sau build: hồ sơ 17 tháng 143 ms, bảng tháng 43,4 ms,
+tìm khách 16,1 ms; hồ sơ lặp lại 2,5 ms. Đây là một lần đo local với cache hệ
+điều hành đã được làm nóng bởi build, không phải kiểm thử tải đồng thời trên
+full hoặc cam kết latency. Không đo lại độ chính xác dự báo trong bước phục vụ.
+
+## Chạy trên sample đã có
 
 Từ `experiments/event_pipeline_v2`, với environment đã cài `requirements-track-a.txt`:
 
@@ -140,9 +198,10 @@ cho từng khách ở dashboard; không nhân CLV 1m với 6 để thay thế.
 
 ## Phạm vi và vận hành
 
-- Bản hiện kiểm tra trên sample 10k, 17 tháng 2015-01…2016-05. Không phải kiểm
-  chứng tải trên full dữ liệu. Loader giữ các feature/lifecycle/status trong RAM;
-  muốn full scale cần truy vấn partition theo tháng/ID hoặc kho dữ liệu có index.
+- Chế độ `--index` truy vấn trên ổ đĩa; chế độ sample cũ giữ dữ liệu trong RAM.
+  Cả hai giữ cùng hợp đồng point-in-time, xử lý thiếu dữ liệu và gates.
+  Số khách trong header là số ID đã xuất hiện tính đến tháng cuối nguồn;
+  không phải số snapshot hay số khách quan sát trong một tháng riêng lẻ.
 - Chỉ bind 127.0.0.1, không có đăng nhập; không expose qua tunnel/reverse proxy
   hoặc sửa thành 0.0.0.0. Endpoint chỉ GET, không ghi model/raw/GCS, API/asset
   `no-store`, không CORS, kiểm tra Host/Origin; không log query chứa mã khách.
@@ -156,7 +215,7 @@ cho từng khách ở dashboard; không nhân CLV 1m với 6 để thay thế.
 ## Kiểm tra
 
 ```powershell
-python -m unittest discover -s tests -p test_customer360.py -v
+python -m unittest discover -s tests -p 'test_customer360*.py' -v
 ```
 
 15 synthetic contract tests: không dùng tháng tương lai, hồ sơ không xuất cụm C,
@@ -170,6 +229,11 @@ tháng, loại bỏ gap/first-seen/incomplete, chưa xác định khi thiếu to
 lọc/phân trang và bất biến khi dữ liệu tháng tương lai đổi. HTTP test kiểm tra
 thêm hai endpoint cùng validation tháng/trang/mã lọc.
 Không cần raw thật cho CI.
+
+5 contract tests cho index: snapshot/profile/search/monthly pagination tương
+đương store cũ; affinity khớp công thức pipeline; không dùng cờ deceased tương
+lai; kiểm tra lỗi checksum và audit có nhãn tương lai; HTTP đồng thời trên
+store chỉ đọc. Tổng 20 tests.
 
 ### Diễn biến trước lượt mở
 
