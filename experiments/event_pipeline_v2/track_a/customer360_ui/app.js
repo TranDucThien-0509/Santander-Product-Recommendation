@@ -7,6 +7,14 @@ async function api(path) { const r = await fetch(path, { cache: "no-store" }); c
 function status(text, error = false) { $("status").textContent = text; $("status").setAttribute("role", error ? "alert" : "status"); }
 function pill(label) { return el("span", label, "pill" + (label === "At-risk" ? " risk" : label === "Churned" ? " dead" : "")); }
 function metric(label, value, hint) { const n = el("div", null, "metric"); n.append(el("div", label, "label"), el("div", value, "value"), el("div", hint, "hint")); return n; }
+function showProducts(snapshot) {
+  if(!profile || !snapshot.product_complete || !snapshot.is_observed)return;
+  const dialog=$("products-dialog"), owned=snapshot.owned || [];
+  $("products-context").textContent=`Khách #${profile.customer_id} · Tháng ${snapshot.month} · ${owned.length} sản phẩm`;
+  $("products-list").replaceChildren(...owned.map((code,i)=>{const item=el("li");item.append(el("span",String(i+1).padStart(2,"0"),"product-number"),el("span",profile.product_names[code] || code));if((snapshot.acquired||[]).includes(code))item.append(el("span","Mới ghi nhận","product-new"));return item;}));
+  $("products-note").textContent=owned.length ? "Danh sách lấy từ snapshot của tháng đã chọn. “Mới ghi nhận” là thay đổi từ không sở hữu sang sở hữu so với tháng liền trước có dữ liệu đầy đủ." : "Snapshot tháng này ghi nhận 0 sản phẩm đang sở hữu.";
+  if(!dialog.open)dialog.showModal();
+}
 function syncRange(preferredStart) {
   const end = metadata.months.indexOf($("month").value);
   const available = metadata.months.slice(Math.max(0,end-23),end+1);
@@ -37,7 +45,7 @@ function renderPersona(p) {
 function svgNode(tag, attributes = {}, text) { const n = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const [k,v] of Object.entries(attributes)) n.setAttribute(k, String(v)); if (text != null) n.textContent = text; return n; }
 function chart(title, rows, key, digits) {
   const card = el("div", null, "chart"); card.append(el("h3", title));
-  const svg = svgNode("svg", { viewBox: "0 0 480 135", role: "img", "aria-label": title });
+  const svg = svgNode("svg", { viewBox: "0 0 480 135", role: key==="n_products" ? "group" : "img", "aria-label": title });
   const vals = rows.map(r => r[key]), finite = vals.filter(v => v != null), max = Math.max(...finite, 0.01) * 1.22;
   svg.append(svgNode("line", {x1:25,y1:106,x2:458,y2:106,class:"axis"}));
   let previous = null;
@@ -45,7 +53,9 @@ function chart(title, rows, key, digits) {
     const x = rows.length === 1 ? 240 : 29 + i * 420 / (rows.length-1), v = vals[i], y = v == null ? null : 105 - v / max * 78;
     if (v != null) {
       if (previous) svg.append(svgNode("line", { x1:previous.x,y1:previous.y,x2:x,y2:y,class:"line" }));
-      const point = svgNode("circle", {cx:x,cy:y,r:4}); point.append(svgNode("title", {}, `${row.month}: ${fmt(v,digits)}`)); svg.append(point);
+      const point = svgNode("circle", {cx:x,cy:y,r:4}); point.append(svgNode("title", {}, `${row.month}: ${fmt(v,digits)}`));
+      if(key==="n_products" && row.product_complete && row.is_observed){point.setAttribute("role","button");point.setAttribute("tabindex","0");point.setAttribute("class","owned-point");point.setAttribute("aria-label",`Xem danh sách sản phẩm trên biểu đồ tháng ${row.month}`);point.addEventListener("click",()=>showProducts(row));point.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showProducts(row);}});}
+      svg.append(point);
       if (rows.length <= 12 || i === 0 || i === rows.length-1) svg.append(svgNode("text", {x,y:y-10,"text-anchor":"middle"}, fmt(v,digits)));
       previous = {x,y};
     } else { previous = null; svg.append(svgNode("text", {x,y:95,"text-anchor":"middle"}, "—")); }
@@ -81,7 +91,9 @@ function render(p) {
     const monthCell=el("td"), monthButton=el("button",r.month,"month-link");monthButton.type="button";monthButton.setAttribute("aria-label",`Xem điểm tại ${r.month}`);monthButton.title=`Xem RFM, CLV, lifecycle tại ${r.month}`;
     if(r.known)monthButton.addEventListener("click",()=>{$("month").value=r.month;syncRange();loadProfile(p.customer_id,{focusMetrics:true});});else monthButton.disabled=true;
     if(r.month===p.as_of_month)monthButton.setAttribute("aria-current","date");monthCell.append(monthButton);
-    tr.append(monthCell, lifecycle, el("td",fmt(r.R)), el("td",fmt(r.F)), el("td",fmt(r.M,3)), el("td",fmt(r.n_products)), el("td",fmt(r.clv_1m,3)), el("td",r.persona_rule || "—"));
+    const productsCell=el("td");
+    if(r.product_complete && r.is_observed && r.n_products!=null){const b=el("button",fmt(r.n_products),"product-link");b.type="button";b.setAttribute("aria-label",`Xem sản phẩm tháng ${r.month}`);b.title="Bấm để xem danh sách sản phẩm đang sở hữu";b.addEventListener("click",()=>showProducts(r));productsCell.append(b);}else productsCell.textContent="—";
+    tr.append(monthCell, lifecycle, el("td",fmt(r.R)), el("td",fmt(r.F)), el("td",fmt(r.M,3)), productsCell, el("td",fmt(r.clv_1m,3)), el("td",r.persona_rule || "—"));
     const changes = el("td",r.acquired == null ? "—" : `+${r.acquired.length} / −${r.removed.length}`);
     changes.title = r.acquired == null ? "Không có cặp tháng liên tiếp đầy đủ" : `Mở: ${r.acquired.map(x=>p.product_names[x]).join(", ") || "0"}; Rời: ${r.removed.map(x=>p.product_names[x]).join(", ") || "0"}`;
     tr.append(changes); return tr;
@@ -102,6 +114,7 @@ function render(p) {
   $("profile").hidden=false;
 }
 async function loadProfile(id, {focusMetrics=false} = {}) {
+  if($("products-dialog").open)$("products-dialog").close();
   const version=++requestVersion; searchVersion++; $("results").replaceChildren(); $("profile").hidden=true;
   status("Đang tổng hợp hồ sơ…"); $("search-form").querySelector("button").disabled=true;
   try {

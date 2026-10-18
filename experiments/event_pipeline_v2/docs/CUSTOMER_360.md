@@ -75,6 +75,12 @@ Biểu đồ không nối qua tháng thiếu/vắng; bảng có R/F/M, số SP, 
 nhóm hành vi P và số SP mở/rời. Hover ô mở/rời để xem tên SP. Nút JSON tải hồ sơ
 về máy; file đó chứa dữ liệu khách, cần giữ ngoài Git/public report.
 
+Bấm số trong cột **Sản phẩm** hoặc điểm trên biểu đồ số SP để mở danh sách
+sản phẩm đang sở hữu tại đúng snapshot tháng đó. Dialog ghi rõ mã khách/tháng,
+đánh dấu SP mới ghi nhận khi có cặp tháng đầy đủ; có thể đóng bằng nút Đóng
+hoặc Escape. Snapshot đủ dữ liệu và không sở hữu SP nào hiển thị danh sách 0;
+tháng vắng/thiếu ownership hiển thị “—”, không mở danh sách giả định.
+
 ## Chính sách ưu tiên `customer-care-v1`
 
 Đây là heuristic hỗ trợ phân bổ chăm sóc / thử nghiệm cross-sell. Không phải
