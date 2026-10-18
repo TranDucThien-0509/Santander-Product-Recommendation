@@ -4,7 +4,8 @@
 
 **Customer 360:** đã có [dashboard hồ sơ khách hàng theo tháng](experiments/event_pipeline_v2/docs/CUSTOMER_360.md)
 chạy local: RFM, lifecycle, CLV-proxy 1m, affinity, persona C/P và diễn giải mức
-ưu tiên chăm sóc. Chọn mã khách, xem 6/12/toàn bộ lịch sử và tải JSON. Bản hiện
+ưu tiên chăm sóc. Chọn mã khách, khoảng từ tháng → đến tháng hoặc 6/12/toàn bộ
+lịch sử, xem giải thích C/P theo hai cột và tải JSON. Bản hiện
 dùng sample 10k; mức ưu tiên là heuristic thử nghiệm, chưa phải kết luận ROI.
 
 Bộ nghiên cứu Track A nằm tại [`research/track_a/`](research/track_a/README.md):

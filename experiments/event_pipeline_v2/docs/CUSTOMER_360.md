@@ -1,7 +1,8 @@
 # Customer 360 — Track A
 
-Dashboard local, chỉ đọc: chọn mã khách, tháng as-of và cửa sổ 6 / 12 / toàn bộ
-lịch sử (tối đa 24 tháng). Không cần cài thêm web framework hoặc gọi dịch vụ AI.
+Dashboard local, chỉ đọc: chọn mã khách, từ tháng / đến tháng (tháng as-of) tùy ý,
+hoặc chọn nhanh 6 / 12 / toàn bộ lịch sử (tối đa 24 tháng). Không cần cài thêm
+web framework hoặc gọi dịch vụ AI.
 Giao diện tiếng Việt, biểu đồ SVG; không tải tài nguyên từ CDN.
 
 ## Chạy
@@ -45,6 +46,19 @@ manifest/audit với `run_provenance.json` của completed Track A run.
 Khách vắng vẫn có trong lifecycle/search nếu đã xuất hiện đến tháng đó, nhưng
 R/F/M/ownership/CLV không được điền từ lần quan sát cũ. Trước lần xuất hiện đầu
 tiên hiển thị “Chưa xuất hiện”. Cụm C1…Ck không có thứ tự giá trị.
+
+Phần “Khách thuộc nhóm nào?” hiển thị ngang toàn chiều rộng: C bên trái và P
+bên phải (màn hình nhỏ tự xếp dọc). C giải thích cách KMeans gán hồ sơ vào tâm
+cụm gần nhất sau preprocessing và hiển thị đặc điểm cohort cùng tháng. P hiện
+quy tắc F/số SP cùng số liệu cụ thể của khách, ví dụ P5 = F≥2 và 2–4 SP.
+Hai mã C/P mô tả hai góc nhìn song song, không phải điểm đánh giá khách.
+
+Đổi **từ tháng** chỉ đổi cửa sổ quan sát, không tính lại F hoặc nhãn persona.
+Đổi **đến tháng / góc nhìn** đổi thời điểm đánh giá toàn bộ hồ sơ. Ví dụ chọn
+2015-03 → 2016-05 để xem 15 tháng. Chọn nhanh tự điều chỉnh tháng bắt đầu;
+khoảng tùy chọn giữ tháng bắt đầu khi đổi tháng kết thúc nếu vẫn hợp lệ. Nếu
+tháng kết thúc lùi trước tháng bắt đầu, UI thu khoảng về 1 tháng để tránh đảo
+ngược thời gian. URL lưu số tháng thực tế và preset để phục hồi bộ lọc khi tải lại.
 
 Biểu đồ không nối qua tháng thiếu/vắng; bảng có R/F/M, số SP, CLV, lifecycle,
 persona C/P và số SP mở/rời. Hover ô mở/rời để xem tên SP. Nút JSON tải hồ sơ

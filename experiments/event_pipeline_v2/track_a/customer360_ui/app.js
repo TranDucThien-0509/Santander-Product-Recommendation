@@ -7,6 +7,36 @@ async function api(path) { const r = await fetch(path, { cache: "no-store" }); c
 function status(text, error = false) { $("status").textContent = text; $("status").setAttribute("role", error ? "alert" : "status"); }
 function pill(label) { return el("span", label, "pill" + (label === "At-risk" ? " risk" : label === "Churned" ? " dead" : "")); }
 function metric(label, value, hint) { const n = el("div", null, "metric"); n.append(el("div", label, "label"), el("div", value, "value"), el("div", hint, "hint")); return n; }
+function syncRange(preferredStart) {
+  const end = metadata.months.indexOf($("month").value);
+  const available = metadata.months.slice(Math.max(0,end-23),end+1);
+  const previous = preferredStart || $("start-month").value;
+  $("start-month").replaceChildren(...available.slice().reverse().map(m=>{const o=el("option",m);o.value=m;return o;}));
+  const preset = $("window").value;
+  $("start-month").value = preset === "custom" ? (available.includes(previous) ? previous : available[available.length-1]) : available[Math.max(0,available.length-Number(preset))];
+}
+function selectedWindow() { return metadata.months.indexOf($("month").value)-metadata.months.indexOf($("start-month").value)+1; }
+function renderPersona(p) {
+  const c=p.current, peer=p.persona_peers, blocks=[];
+  const cluster=el("div",null,"persona-block"); cluster.append(el("h3",`${c.cluster || "Cụm C chưa khả dụng"} · Nhóm tương đồng từ dữ liệu`));
+  if(peer) {
+    cluster.append(el("p",`KMeans xếp khách vào ${c.cluster} vì hồ sơ tổng hợp gần tâm cụm này nhất sau xử lý đặc trưng. Mô hình xét R/F/M, danh mục sản phẩm, CLV-proxy, affinity và thông tin hồ sơ (tuổi, thu nhập, thâm niên, kênh, segment).`,"small"));
+    cluster.append(el("p",`Đặc điểm ${c.cluster} tại ${peer.as_of_month}: ${fmt(peer.n)} khách; F trung vị ${fmt(peer.median_F,1)} tháng có sự kiện, danh mục trung vị ${fmt(peer.median_products,1)} sản phẩm; CLV-proxy trung bình ${fmt(peer.mean_clv_1m,3)} SP/tháng.`,"small"));
+    cluster.append(el("p",`Riêng khách này: F=${fmt(c.F)}, đang giữ ${fmt(c.n_products)} sản phẩm, CLV-proxy=${fmt(c.clv_1m,3)} SP/tháng. Các số trung vị mô tả cụm; việc gán C dùng toàn bộ hồ sơ.`,"small"));
+  } else cluster.append(el("p",`Mô hình cụm C được fit tại ${p.persona_fit_month}; chỉ gán từ tháng fit khi có danh mục đầy đủ. Khách vắng hoặc thiếu dữ liệu được để trống.`,"small"));
+  blocks.push(cluster);
+  const rule=el("div",null,"persona-block");rule.append(el("h3",`${c.persona_rule || "Nhãn P chưa khả dụng"} · Nhóm theo quy tắc hành vi`));
+  rule.append(el("p",p.persona_description,"small"));
+  const rules={P1:["F = 0","Số SP ≤ 2"],P2:["F = 0","Số SP ≥ 3"],P3:["F = 1"],P4:["F ≥ 2","Số SP ≤ 1"],P5:["F ≥ 2","2 ≤ số SP ≤ 4"],P6:["F ≥ 2","Số SP ≥ 5"]};
+  if(rules[c.persona_rule]) {
+    const list=el("ul",null,"persona-rules");
+    list.append(el("li",`Quy tắc: ${rules[c.persona_rule].join(" và ")}.`));
+    list.append(el("li",`Dữ liệu khách: F=${fmt(c.F)} tháng có mở thêm SP; danh mục hiện tại=${fmt(c.n_products)} sản phẩm.`));
+    list.append(el("li",`Lịch sử có ${fmt(c.observed_pairs)} cặp tháng đầy đủ. F tính đến ${p.as_of_month}, không tính lại theo khoảng biểu đồ.`));rule.append(list);
+  }
+  blocks.push(rule,el("p",`C và P là hai góc mô tả song song; số đi kèm là mã nhóm. Mức ưu tiên chăm sóc được tính riêng. Đổi khoảng xem chỉ đổi lịch sử hiển thị; đổi tháng kết thúc mới đổi hồ sơ và nhãn tại thời điểm đó.`,"small"));
+  $("persona-explanation").replaceChildren(...blocks);
+}
 function svgNode(tag, attributes = {}, text) { const n = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const [k,v] of Object.entries(attributes)) n.setAttribute(k, String(v)); if (text != null) n.textContent = text; return n; }
 function chart(title, rows, key, digits) {
   const card = el("div", null, "chart"); card.append(el("h3", title));
@@ -30,7 +60,7 @@ function chart(title, rows, key, digits) {
 function render(p) {
   const c = p.current;
   $("customer-title").textContent = `Khách hàng #${p.customer_id}`;
-  $("profile-subtitle").textContent = `Góc nhìn tại ${p.as_of_month} · ${p.timeline.length} tháng hiển thị · ${c.is_observed ? "Có trong snapshot" : "Vắng trong snapshot"}`;
+  $("profile-subtitle").textContent = `${p.timeline[0].month} → ${p.as_of_month} · ${p.timeline.length} tháng hiển thị · ${c.is_observed ? "Có trong snapshot" : "Vắng trong snapshot"}`;
   $("metrics").replaceChildren(
     metric("R / RECENCY", c.R == null ? "—" : `${fmt(c.R)} tháng`, c.rfm_no_event === 1 ? "Chưa ghi nhận sự kiện; không gán R = 0" : "Từ lần mở thêm sản phẩm gần nhất"),
     metric("F / FREQUENCY", fmt(c.F), "Số tháng có mở thêm SP trong lịch sử hợp lệ"),
@@ -43,9 +73,7 @@ function render(p) {
   $("next-step").textContent = p.policy.next_step;
   $("policy-note").textContent = `${p.policy.basis} Chưa thể tính ROI. Policy ${p.policy.policy_version}.`;
   $("persona").textContent = `${c.cluster || "Chưa có cụm C"} / ${c.persona_rule || "Chưa có nhãn P"}`;
-  $("persona-description").textContent = p.persona_description;
-  const peer = p.persona_peers;
-  $("peer-summary").textContent = peer ? `Cụm ${c.cluster} tại ${peer.as_of_month}: ${fmt(peer.n)} khách; F median ${fmt(peer.median_F,1)}, số SP median ${fmt(peer.median_products,1)}, CLV-proxy mean ${fmt(peer.mean_clv_1m,3)}. Cụm C không phải thứ hạng giá trị.` : `Mô hình cụm C được fit tại ${p.persona_fit_month}; không áp ngược cho tháng trước fit hoặc khách thiếu danh mục.`;
+  renderPersona(p);
   $("evidence-label").textContent = p.evidence.label;
   $("evidence-note").textContent = `${c.observed_pairs == null ? "Chưa có snapshot đầy đủ ở tháng này" : c.observed_pairs+" cặp tháng đầy đủ trong lịch sử"} · ${p.evidence.gap_months} tháng thiếu/vắng trong cửa sổ. ${p.evidence.meaning}`;
   $("charts").replaceChildren(chart("Số sản phẩm đang sở hữu", p.timeline,"n_products",0), chart("CLV-proxy · SP mở thêm kỳ vọng 1 tháng",p.timeline,"clv_1m",3));
@@ -75,10 +103,10 @@ async function loadProfile(id) {
   const version=++requestVersion; searchVersion++; $("results").replaceChildren(); $("profile").hidden=true;
   status("Đang tổng hợp hồ sơ…"); $("search-form").querySelector("button").disabled=true;
   try {
-    const p=await api(`/api/profile?${new URLSearchParams({id,month:$("month").value,window:$("window").value})}`);
+    const p=await api(`/api/profile?${new URLSearchParams({id,month:$("month").value,window:selectedWindow()})}`);
     if(version!==requestVersion)return;
     profile=p; customerId=p.customer_id; $("customer").value=String(customerId); render(p); status(`Đã tổng hợp hồ sơ #${id} tại ${p.as_of_month}.`);
-    history.replaceState(null,"",`/?${new URLSearchParams({id,month:p.as_of_month,window:p.window})}`);
+    history.replaceState(null,"",`/?${new URLSearchParams({id,month:p.as_of_month,window:p.window,preset:$("window").value})}`);
   } catch(e) { if(version===requestVersion) status(e.message,true); }
   finally {if(version===requestVersion) $("search-form").querySelector("button").disabled=false;}
 }
@@ -86,12 +114,15 @@ $("search-form").addEventListener("submit",e=>{e.preventDefault();loadProfile($(
 $("customer").addEventListener("input",()=>{clearTimeout(timer); const version=++searchVersion; const q=$("customer").value.trim(); $("results").replaceChildren(); if(!/^\d{1,12}$/.test(q))return; timer=setTimeout(async()=>{
   try { const rows=await api(`/api/customers?${new URLSearchParams({q,month:$("month").value})}`); if(version!==searchVersion)return; $("results").replaceChildren(...rows.map(r=>{const b=el("button",`#${r.customer_id} · ${r.lifecycle}`);b.type="button";b.addEventListener("click",()=>loadProfile(r.customer_id));return b;})); } catch(e){if(version===searchVersion)status(e.message,true);}
 },220);});
-for(const id of ["month","window"]) $(id).addEventListener("change",()=>{searchVersion++;$("results").replaceChildren(); if(customerId!=null)loadProfile(customerId);});
+for(const id of ["month","window","start-month"]) $(id).addEventListener("change",()=>{searchVersion++;$("results").replaceChildren();if(id==="start-month")$("window").value="custom";else syncRange();if(customerId!=null)loadProfile(customerId);});
 $("download").addEventListener("click",()=>{if(!profile)return;const url=URL.createObjectURL(new Blob([JSON.stringify(profile,null,2)],{type:"application/json"}));const a=el("a");a.href=url;a.download=`customer-${profile.customer_id}-${profile.as_of_month}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 (async()=>{try{
   metadata=await api("/api/meta"); $("scope").textContent=`${fmt(metadata.customer_count)} khách · ${metadata.months[0]} → ${metadata.latest_month}`;
   $("month").replaceChildren(...metadata.months.slice().reverse().map(m=>{const o=el("option",m);o.value=m;return o;}));
-  $("examples").replaceChildren(el("span","Xem nhanh:","small"),...metadata.examples.map(r=>{const b=el("button",`${r.label} #${r.customer_id}`);b.addEventListener("click",()=>{$("month").value=metadata.latest_month;loadProfile(r.customer_id);});return b;}));
-  const args=new URLSearchParams(location.search);if(metadata.months.includes(args.get("month")))$("month").value=args.get("month");if(["6","12","24"].includes(args.get("window")))$("window").value=args.get("window");
+  $("examples").replaceChildren(el("span","Xem nhanh:","small"),...metadata.examples.map(r=>{const b=el("button",`${r.label} #${r.customer_id}`);b.addEventListener("click",()=>{$("month").value=metadata.latest_month;syncRange();loadProfile(r.customer_id);});return b;}));
+  const args=new URLSearchParams(location.search);if(metadata.months.includes(args.get("month")))$("month").value=args.get("month");
+  const requested=Number(args.get("window")||6), end=metadata.months.indexOf($("month").value);
+  $("window").value=["6","12","24","custom"].includes(args.get("preset")) ? args.get("preset") : [6,12,24].includes(requested) ? String(requested) : "custom";
+  syncRange(metadata.months[Math.max(0,end-(Number.isInteger(requested)&&requested>=1&&requested<=24?requested:6)+1)]);
   if(/^\d{1,12}$/.test(args.get("id")||""))await loadProfile(args.get("id")); else if(metadata.examples.length)await loadProfile(metadata.examples[0].customer_id);
 }catch(e){status("Không kết nối được dữ liệu: "+e.message,true);}})();
