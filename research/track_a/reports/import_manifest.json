@@ -4,7 +4,7 @@
     {
       "path": "README.md",
       "sha256": "692956ae537383a9d45250c2ca1b0bcfb0351df353fd665e253c1f4e0e1f966c",
-      "repository_lf_sha256": "692956ae537383a9d45250c2ca1b0bcfb0351df353fd665e253c1f4e0e1f966c"
+      "repository_lf_sha256": "3d65c1e35a290e6b25b3927a4043c7cba8a6dac80ff90b33618638b6ea0143b3"
     },
     {
       "path": "pyproject.toml",
@@ -164,7 +164,7 @@
     {
       "path": "notebooks/README.md",
       "sha256": "f01eb87f90c6e664b23b2f97b0cf5f8bcc3de9e6cb2f7ac7039ba6c29fcddd96",
-      "repository_lf_sha256": "f01eb87f90c6e664b23b2f97b0cf5f8bcc3de9e6cb2f7ac7039ba6c29fcddd96"
+      "repository_lf_sha256": "e9852b6e5ac5b2dcff68aa0116105555a805ff559f37787d9263f35789450186"
     },
     {
       "path": "reports/benchmark_summary.csv",
@@ -317,6 +317,10 @@
     {
       "path": "scripts/extract_evidence.py",
       "change": "Removed trailing whitespace only; original source SHA256 retained in sha256 field."
+    },
+    {
+      "path": "README.md and notebooks/README.md",
+      "change": "Added integration status/navigation for the new sample run and executed demo; original source SHA256 retained."
     }
   ]
 }

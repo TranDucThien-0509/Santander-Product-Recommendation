@@ -1,5 +1,14 @@
 # Santander Customer Analytics
 
+> **Cập nhật tích hợp 2026-10-18:** thư mục này đã nằm trong Santander-Product-Recommendation.
+> Xem [audit từng yêu cầu Track A](docs/TRACK_A_AUDIT.md), [báo cáo sample chạy mới](reports/sample_10k/TRACK_A_REPORT.md),
+> [notebook demo 18 phút đã execute](notebooks/16_track_a_review.ipynb) và [hướng dẫn chạy CLI/S3](docs/REPRODUCE.md).
+> Có thêm CLV 6m + SHAP, 5 persona clustering dùng đầy đủ feature và processed sample đã sinh ở local.
+> Phần “cần chạy trên Kaggle” bên dưới nói về **full output của package wrap gốc**, không phủ định sample run bổ sung.
+> Upload S3 thật vẫn cần bucket/prefix và receipt; không xem GCS là S3.
+
+---
+
 RFM-proxy, lifecycle, acquisition-proxy, affinity và sáu persona từ Santander Product Recommendation. Bộ repo này hoàn thiện **bước 1–4**: chốt lựa chọn, tổng hợp benchmark, chuẩn bị bảng khách hàng cuối và sáu persona card.
 
 ## Xem kết quả
