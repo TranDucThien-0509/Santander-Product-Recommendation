@@ -13,3 +13,6 @@ configs/config.local.json
 .env
 **/.env
 model*
+mlruns
+mlartifacts
+*.db*

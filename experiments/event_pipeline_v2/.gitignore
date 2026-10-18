@@ -13,3 +13,8 @@ config.local.json
 
 .ruff_cache/
 *.log
+mlruns/
+mlartifacts/
+*.db
+*.db-shm
+*.db-wal
