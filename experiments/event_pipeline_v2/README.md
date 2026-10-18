@@ -159,4 +159,13 @@ Workflow v2 nằm tại root `.github/workflows/event-pipeline-v2.yml`, cài req
 
 Phần bổ sung nằm trong package `track_a/`, dependencies riêng `requirements-track-a.txt`. CLI `python -m track_a.run --help` chạy EDA/event export, RFM tiering/stability, CLV 6m BG/NBD + Gamma-Gamma/gradient boosting + SHAP, persona clustering và affinity audit từ completed v2 run. Không đổi feature/version/model của ranker đang dùng.
 
+### Customer 360 — xem từng khách theo tháng
+
+`python -m track_a.serve_customer360 --help` mở dashboard local với mã khách,
+as-of month, lịch sử 6/12/toàn bộ, RFM, lifecycle, CLV-proxy 1m, persona C/P,
+affinity đã mask ownership, diễn giải và heuristic ưu tiên chăm sóc. Có export
+JSON về máy. Không xuất đề xuất cho khách vắng/inactive/indfall=S/thiếu dữ liệu;
+không dùng tháng tương lai hoặc gán cụm trước fit. Bản đang dùng sample 10k,
+không kết luận ROI hoặc lợi nhuận dài hạn. Xem [cách chạy và chính sách](docs/CUSTOMER_360.md).
+
 Xem [audit từng yêu cầu](../../research/track_a/docs/TRACK_A_AUDIT.md), [cách tái chạy và S3 export](../../research/track_a/docs/REPRODUCE.md), [báo cáo sample thực tế](../../research/track_a/reports/sample_10k/TRACK_A_REPORT.md) và [notebook demo](../../research/track_a/notebooks/16_track_a_review.ipynb). Bộ notebook nghiên cứu cũ, benchmark aggregate có provenance và 6 persona card đã được đưa vào `research/track_a/`; không trộn kết quả đó với full-cloud recommendation benchmark.

@@ -7,6 +7,7 @@ on:
       - 'experiments/event_pipeline_v2/pipeline/**'
       - 'experiments/event_pipeline_v2/requirements-track-a.txt'
       - 'experiments/event_pipeline_v2/tests/test_track_a.py'
+      - 'experiments/event_pipeline_v2/tests/test_customer360.py'
       - '.github/workflows/track-a.yml'
   pull_request:
     paths:
@@ -15,6 +16,7 @@ on:
       - 'experiments/event_pipeline_v2/pipeline/**'
       - 'experiments/event_pipeline_v2/requirements-track-a.txt'
       - 'experiments/event_pipeline_v2/tests/test_track_a.py'
+      - 'experiments/event_pipeline_v2/tests/test_customer360.py'
       - '.github/workflows/track-a.yml'
   workflow_dispatch:
 permissions:
@@ -36,6 +38,10 @@ jobs:
       - run: python -m pip install -r experiments/event_pipeline_v2/requirements-track-a.txt -r research/track_a/requirements-demo.txt -e research/track_a
       - run: python -m unittest discover -s research/track_a/tests -v
       - run: python -m unittest discover -s tests -p test_track_a.py -v
+        working-directory: experiments/event_pipeline_v2
+      - run: python -m unittest discover -s tests -p test_customer360.py -v
+        working-directory: experiments/event_pipeline_v2
+      - run: python -m track_a.serve_customer360 --help
         working-directory: experiments/event_pipeline_v2
       - run: python -m track_a.run --help
         working-directory: experiments/event_pipeline_v2
