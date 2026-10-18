@@ -15,18 +15,6 @@ from track_a.customer360 import CustomerStore, care_policy
 from track_a.serve_customer360 import handler_for
 
 
-class Transform:
-    def transform(self, frame):
-        return frame.to_numpy()
-
-
-class Model:
-    n_clusters = 1
-
-    def predict(self, x):
-        return np.zeros(len(x), dtype=int)
-
-
 def fixture():
     frames, life, flags = {}, {}, []
     for month in ["2020-01", "2020-02", "2020-03"]:
@@ -49,8 +37,7 @@ def fixture():
                               ind_actividad_cliente=None if i == 3 else "0" if i == 2 else "1"))
         life[month] = pd.DataFrame(rows).set_index("customer_id")
     frames = {m: pd.DataFrame(rows).set_index("customer_id") for m, rows in frames.items()}
-    bundle = dict(transform=Transform(), model=Model(), fit_month="2020-02", columns=["n_products"])
-    return frames, life, pd.DataFrame(flags), bundle, "synthetic", "synthetic, not customer data"
+    return frames, life, pd.DataFrame(flags), "synthetic", "synthetic, not customer data"
 
 
 class Customer360Contracts(unittest.TestCase):
@@ -65,13 +52,14 @@ class Customer360Contracts(unittest.TestCase):
         other[2].loc[other[2].month.eq("2020-03"), "indfall"] = "S"
         after = CustomerStore(*other).profile(1, "2020-01", 6)
         self.assertEqual(before, after)
-        self.assertIsNone(before["current"]["cluster"])
-        self.assertEqual(self.store.profile(1, "2020-03")["current"]["cluster"], "C1")
+        self.assertNotIn("cluster", before["current"])
+        self.assertNotIn("persona_peers", before)
+        self.assertNotIn("persona_model", before)
 
     def test_absence_is_null_and_breaks_product_events(self):
         profile = self.store.profile(1, "2020-03")
         gap = profile["timeline"][1]
-        for key in ["R", "F", "M", "clv_1m", "n_products", "cluster", "acquired"]:
+        for key in ["R", "F", "M", "clv_1m", "n_products", "acquired"]:
             self.assertIsNone(gap[key], key)
         self.assertIsNone(profile["current"]["acquired"])
         absent = self.store.profile(1, "2020-02")
@@ -138,26 +126,22 @@ class Customer360Contracts(unittest.TestCase):
         old = store.profile(2,"2020-02")
         latest = store.profile(2,"2020-03")
         self.assertEqual(old["customer_demographics"]["age"], 21)
-        self.assertEqual(old["persona_peers"]["demographics"]["age"]["median"], 21)
-        self.assertEqual(latest["persona_peers"]["demographics"]["age"]["median"], 22)
-        self.assertEqual(old["persona_peers"]["demographics"]["channel"]["mode"], "2020-02")
-        self.assertFalse(old["persona_model"]["demographics_only"])
+        self.assertEqual(latest["customer_demographics"]["age"], 22)
+        self.assertEqual(old["customer_demographics"]["channel"], "2020-02")
+        self.assertEqual(old["customer_demographics"]["income"], 21000)
         self.args[0]["2020-03"]["age"] = 99
         self.assertEqual(old, CustomerStore(*self.args).profile(2,"2020-02"))
 
-    def test_missing_demographics_have_coverage_and_do_not_become_zero(self):
+    def test_missing_demographics_are_not_filled_from_other_customers(self):
         self.args[0]["2020-03"]["renta"] = np.nan
         self.args[0]["2020-03"].loc[1,"renta"] = 10000
         self.args[0]["2020-03"]["canal_entrada"] = "__MISSING__"
         self.args[0]["2020-03"].loc[[1,2],"canal_entrada"] = "KNOWN"
         p = CustomerStore(*self.args).profile(2,"2020-03")
-        d = p["persona_peers"]["demographics"]
         self.assertIsNone(p["customer_demographics"]["income"])
-        self.assertIsNone(d["age"]["median"])
-        self.assertEqual(d["age"]["coverage"], 0)
-        self.assertEqual(d["income"]["median"], 10000)
-        self.assertEqual(d["income"]["coverage"], .2)
-        self.assertEqual(d["channel"]["share"], .4)
+        self.assertIsNone(p["customer_demographics"]["age"])
+        self.assertEqual(p["customer_demographics"]["channel"], "KNOWN")
+        self.assertIsNone(CustomerStore(*self.args).profile(3,"2020-03")["customer_demographics"]["channel"])
 
     def test_past_deceased_flag_blocks_even_after_absence_or_changed_flag(self):
         flags = self.args[2]

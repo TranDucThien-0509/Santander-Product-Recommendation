@@ -5,7 +5,6 @@ is a transparent heuristic, not an estimated campaign uplift or monetary ROI.
 """
 import hashlib
 import json
-import pickle
 from functools import lru_cache
 from pathlib import Path
 
@@ -41,25 +40,6 @@ def scalar(value):
     if value is None or pd.isna(value):
         return None
     return value.item() if isinstance(value, np.generic) else value
-
-
-def demographic_summary(features):
-    """Describe only the selected month's cluster; missing remains unknown."""
-    summary = {}
-    for source, name in [("age", "age"), ("renta", "income"), ("antiguedad", "tenure")]:
-        values = pd.to_numeric(features.get(source, pd.Series(index=features.index, dtype=float)), errors="coerce")
-        values = values.where(np.isfinite(values))
-        summary[name] = dict(median=scalar(values.median()) if values.notna().any() else None,
-                             coverage=float(values.notna().mean()))
-    for source, name in [("canal_entrada", "channel"), ("segmento", "segment")]:
-        values = features.get(source, pd.Series(index=features.index, dtype="object"))
-        known = values.notna() & ~values.isin(["__MISSING__", "UNKNOWN", ""])
-        counts = values.loc[known].astype(str).value_counts()
-        summary[name] = dict(mode=str(counts.index[0]) if len(counts) else None,
-                             # Denominator includes missing records, like saved persona cards.
-                             share=float(counts.iloc[0] / len(features)) if len(counts) else None,
-                             coverage=float(known.mean()))
-    return summary
 
 
 def care_policy(snapshot):
@@ -120,9 +100,9 @@ def read_flags(raw_path, months, ids):
 
 
 class CustomerStore:
-    """In-memory sample explorer. Model pickles must be locally trusted artifacts."""
-    def __init__(self, frames, lifecycles, flags, bundle, source_name, scope):
-        self.frames, self.lifecycles, self.bundle = frames, lifecycles, bundle
+    """In-memory sample explorer over customer snapshots, without clustering."""
+    def __init__(self, frames, lifecycles, flags, source_name, scope):
+        self.frames, self.lifecycles = frames, lifecycles
         self.months = sorted(frames)
         self.flags = {m: z.set_index("customer_id") for m, z in flags.groupby("month")}
         self.source_name, self.scope = source_name, scope
@@ -155,10 +135,8 @@ class CustomerStore:
                      for m in panel.months}
         ids = lifecycle[panel.months[-1]].index
         flags = read_flags(panel.config["data"]["train_csv_or_zip"], panel.months, ids)
-        with (track_a_run / "model_artifacts" / "persona_clustering.pkl").open("rb") as handle:
-            bundle = pickle.load(handle)
         scope = json.loads((track_a_run / "summary.json").read_text())["sample_scope"]
-        return cls(frames, lifecycle, flags, bundle, source_run.name, scope)
+        return cls(frames, lifecycle, flags, source_run.name, scope)
 
     @lru_cache(maxsize=18)
     def cohort(self, month):
@@ -189,18 +167,12 @@ class CustomerStore:
         values = z.loc[peer, "clv_1m"]
         z["clv_peer_percentile"] = ((values.rank(method="average") - .5) / len(values) * 100)
         z["clv_peer_n"] = len(values)
-        z["cluster"] = pd.Series(index=z.index, dtype="object")
-        if month >= self.bundle["fit_month"]:
-            complete = f.loc[f.product_complete.eq(1)]
-            if len(complete):
-                labels = self.bundle["model"].predict(self.bundle["transform"].transform(complete[self.bundle["columns"]]))
-                z.loc[complete.index, "cluster"] = [f"C{int(label)+1}" for label in labels]
         return z
 
     def metadata(self):
         return dict(months=self.months, latest_month=self.months[-1], scope=self.scope,
                     source_run=self.source_name, customer_count=len(self.lifecycles[self.months[-1]]),
-                    persona_fit_month=self.bundle["fit_month"], policy_version=POLICY_VERSION)
+                    policy_version=POLICY_VERSION)
 
     def search(self, query, month):
         cohort = self.cohort(month)
@@ -220,7 +192,7 @@ class CustomerStore:
         if customer_id not in z.index:
             return dict(month=month, known=False, is_observed=False, product_complete=False,
                         lifecycle="Chưa xuất hiện", R=None, F=None, M=None, n_products=None,
-                        clv_1m=None, cluster=None, persona_rule=None, acquired=None, removed=None)
+                        clv_1m=None, persona_rule=None, acquired=None, removed=None)
         life = z.loc[customer_id]
         observed = bool(life.is_observed)
         row = f.loc[customer_id] if observed and customer_id in f.index else pd.Series(dtype=object)
@@ -239,7 +211,7 @@ class CustomerStore:
             n_products=scalar(row.get("n_products")) if complete else None,
             observed_pairs=scalar(row.get("observed_pairs")),
             clv_1m=scalar(life.clv_1m), clv_peer_percentile=scalar(life.clv_peer_percentile),
-            clv_peer_n=int(life.clv_peer_n), cluster=scalar(life.cluster),
+            clv_peer_n=int(life.clv_peer_n),
             persona_rule=scalar(row.get("persona_id")) if row.get("persona_id") in RULE_PERSONAS else None,
             acquired=None, removed=None, owned=[])
         if complete:
@@ -268,15 +240,6 @@ class CustomerStore:
                 if row[p] == 0 and score is not None and np.isfinite(score) and score > 0:
                     recommendations.append(dict(product=p, name=PRODUCT_NAMES[p], score=float(score)))
             recommendations.sort(key=lambda r: (-r["score"], r["product"]))
-        peers = self.cohort(month)
-        group = peers.loc[peers.cluster.eq(current["cluster"])] if current["cluster"] else peers.iloc[:0]
-        peer_summary = None
-        if len(group):
-            features = self.frames[month].reindex(group.index)
-            peer_summary = dict(n=len(group), median_F=scalar(features.F_event_months.median()),
-                                median_products=scalar(features.n_products.median()),
-                                mean_clv_1m=scalar(group.clv_1m.mean()), as_of_month=month,
-                                demographics=demographic_summary(features))
         customer_row = self.frames[month].loc[customer_id] if current["is_observed"] else pd.Series(dtype=object)
         customer_demographics = {name: scalar(customer_row.get(col)) for col, name in [
             ("age", "age"), ("renta", "income"), ("antiguedad", "tenure"),
@@ -310,12 +273,7 @@ class CustomerStore:
                     source_run=self.source_name, scope=self.scope,
                     current=current, timeline=timeline, policy=policy,
                     persona_description=RULE_PERSONAS.get(current["persona_rule"], "Chưa đủ điều kiện gán persona rule"),
-                    persona_fit_month=self.bundle["fit_month"], persona_peers=peer_summary,
                     customer_demographics=customer_demographics,
-                    persona_model=dict(namespace="persona_multiblock", method="KMeans",
-                        k=getattr(self.bundle["model"], "n_clusters", None),
-                        fit_month=self.bundle["fit_month"], demographics_only=False,
-                        description="Demographics + RFM + CLV-proxy + portfolio + affinity"),
                     recommendations=recommendations[:5], product_names=PRODUCT_NAMES,
                     evidence=dict(label=evidence, observed_pairs=history_pairs, gap_months=gaps,
                                   meaning="Mức đầy đủ dữ liệu, không phải xác suất dự báo đúng."),
@@ -324,5 +282,4 @@ class CustomerStore:
                         "Affinity là điểm xếp hạng, không phải xác suất mua đã hiệu chỉnh.",
                         "Không có chi phí, biên lợi nhuận và uplift chiến dịch để kết luận ROI hay khách sẽ sinh lời.",
                         "Không dự báo 6 tháng bằng cách nhân CLV 1 tháng; chưa có mô hình tương lai cá nhân dài hạn được phục vụ ở đây.",
-                        "Nhãn C là cụm tương đồng, không phải thứ hạng giá trị. Persona trước tháng fit được để trống.",
                         "Lịch sử panel bị giới hạn bên trái; F và sự kiện không đại diện toàn bộ đời khách."])

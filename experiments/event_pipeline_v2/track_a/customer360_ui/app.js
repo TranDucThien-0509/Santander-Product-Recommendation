@@ -17,26 +17,11 @@ function syncRange(preferredStart) {
 }
 function selectedWindow() { return metadata.months.indexOf($("month").value)-metadata.months.indexOf($("start-month").value)+1; }
 function renderPersona(p) {
-  const c=p.current, peer=p.persona_peers, blocks=[];
-  const cluster=el("div",null,"persona-block"); cluster.append(el("h3",`${c.cluster || "Cụm C chưa khả dụng"} · Chân dung khách hàng`));
-  if(peer) {
-    const d=peer.demographics, own=p.customer_demographics, model=p.persona_model;
-    const portrait=[];
-    if(d.age.median!=null)portrait.push(`tuổi trung vị ${fmt(d.age.median,0)}`);
-    if(d.tenure.median!=null)portrait.push(`thâm niên trung vị ${fmt(d.tenure.median,0)} tháng`);
-    if(d.segment.mode)portrait.push(`phân khúc phổ biến ${d.segment.mode} (${fmt(d.segment.share*100,1)}%)`);
-    cluster.append(el("p",`Chân dung ${c.cluster} tại ${peer.as_of_month}: ${fmt(peer.n)} khách${portrait.length ? "; "+portrait.join("; ") : "; chưa đủ demographics để mô tả"}.`,"cluster-portrait"));
-    const table=el("table",null,"demographic-table"), head=el("thead"), titles=el("tr");
-    titles.append(el("th","Đặc điểm"),el("th","Khách này"),el("th",`Cụm ${c.cluster} · điển hình`));head.append(titles);const body=el("tbody");
-    const numerical=(field,unit="")=>[own[field]==null?"—":fmt(own[field],0)+unit,d[field].median==null?"Chưa có dữ liệu":`${fmt(d[field].median,0)}${unit}${d[field].coverage<1 ? " (có dữ liệu "+fmt(d[field].coverage*100,1)+"%)" : ""}`];
-    const categorical=field=>[own[field]||"—",d[field].mode?`${d[field].mode} (${fmt(d[field].share*100,1)}% cụm)`:"Chưa có dữ liệu"];
-    for(const [label,values] of [["Tuổi",numerical("age")],["Thu nhập (renta)",numerical("income")],["Thâm niên",numerical("tenure"," tháng")],["Kênh vào",categorical("channel")],["Phân khúc",categorical("segment")]]){const row=el("tr");row.append(el("td",label),...values.map(v=>el("td",v)));body.append(row);}
-    table.append(head,body);const wrap=el("div",null,"table-scroll");wrap.append(table);cluster.append(wrap,el("p","Số của cụm là trung vị; kênh/phân khúc là giá trị phổ biến. — là chưa có dữ liệu.","small"));
-    cluster.append(el("p",`Hành vi cụm: F trung vị ${fmt(peer.median_F,1)}, danh mục trung vị ${fmt(peer.median_products,1)} SP, CLV-proxy trung bình ${fmt(peer.mean_clv_1m,3)} SP/tháng. Active là trạng thái hoạt động trong nguồn; F=0 nghĩa chưa ghi nhận mở thêm SP trong lịch sử hợp lệ.`,"small"));
-    cluster.append(el("p",`Persona KMeans${model.k?" "+model.k+" cụm":""} · fit ${model.fit_month} · dùng demographics và hành vi/RFM, CLV-proxy, danh mục, affinity.`,"small"));
-    const details=el("details",null,"persona-method"), summary=el("summary","Vì sao khách được gán cụm này?");details.append(summary,el("p",`Hồ sơ tổng hợp của khách gần tâm ${c.cluster} nhất sau tiền xử lý. Bảng mô tả khách điển hình của cụm; thành viên có thể khác trung vị hoặc kênh phổ biến. Đây là mô hình đa nhóm feature, không chỉ gom demographics. Mã C của mô hình RFM khác có thể mang ý nghĩa khác. Tuổi/thu nhập tham gia persona; mức ưu tiên chăm sóc được tính riêng từ hành vi, CLV-proxy và điều kiện dữ liệu.`,"small"));cluster.append(details);
-  } else cluster.append(el("p",`Mô hình cụm C được fit tại ${p.persona_fit_month}; chỉ gán từ tháng fit khi có danh mục đầy đủ. Khách vắng hoặc thiếu dữ liệu được để trống.`,"small"));
-  blocks.push(cluster);
+  const c=p.current, own=p.customer_demographics, blocks=[];
+  const info=el("div",null,"persona-block");info.append(el("h3","Thông tin khách hàng"),el("p",`Ghi nhận tại ${p.as_of_month}; ${c.is_observed ? "dữ liệu của chính khách hàng" : "khách vắng trong snapshot tháng này"}.`,"small"));
+  const table=el("table",null,"customer-info-table"),body=el("tbody");
+  for(const [label,value] of [["Tuổi",own.age==null?"Chưa có dữ liệu":fmt(own.age)],["Thu nhập (renta)",own.income==null?"Chưa có dữ liệu":fmt(own.income)],["Thâm niên",own.tenure==null?"Chưa có dữ liệu":fmt(own.tenure)+" tháng"],["Kênh vào",own.channel||"Chưa có dữ liệu"],["Phân khúc",own.segment||"Chưa có dữ liệu"]]){const row=el("tr");row.append(el("th",label),el("td",value));body.append(row);}
+  table.append(body);info.append(table);blocks.push(info);
   const rule=el("div",null,"persona-block");rule.append(el("h3",`${c.persona_rule || "Nhãn P chưa khả dụng"} · Nhóm theo quy tắc hành vi`));
   rule.append(el("p",p.persona_description,"small"));
   const rules={P1:["F = 0","Số SP ≤ 2"],P2:["F = 0","Số SP ≥ 3"],P3:["F = 1"],P4:["F ≥ 2","Số SP ≤ 1"],P5:["F ≥ 2","2 ≤ số SP ≤ 4"],P6:["F ≥ 2","Số SP ≥ 5"]};
@@ -46,7 +31,7 @@ function renderPersona(p) {
     list.append(el("li",`Dữ liệu khách: F=${fmt(c.F)} tháng có mở thêm SP; danh mục hiện tại=${fmt(c.n_products)} sản phẩm.`));
     list.append(el("li",`Lịch sử có ${fmt(c.observed_pairs)} cặp tháng đầy đủ. F tính đến ${p.as_of_month}, không tính lại theo khoảng biểu đồ.`));rule.append(list);
   }
-  blocks.push(rule,el("p",`C và P là hai góc mô tả song song; số đi kèm là mã nhóm. Mức ưu tiên chăm sóc được tính riêng. Đổi khoảng xem chỉ đổi lịch sử hiển thị; đổi tháng kết thúc mới đổi hồ sơ và nhãn tại thời điểm đó.`,"small"));
+  blocks.push(rule,el("p",`Thông tin khách và nhóm hành vi P lấy tại tháng chấm điểm. Đổi khoảng xem chỉ đổi lịch sử hiển thị; đổi tháng chấm điểm cập nhật toàn bộ hồ sơ.`,"small"));
   $("persona-explanation").replaceChildren(...blocks);
 }
 function svgNode(tag, attributes = {}, text) { const n = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const [k,v] of Object.entries(attributes)) n.setAttribute(k, String(v)); if (text != null) n.textContent = text; return n; }
@@ -86,7 +71,7 @@ function render(p) {
   $("decision-reason").textContent = p.policy.reasons.join(" ") + (c.clv_peer_percentile == null ? "" : ` Phân vị CLV-proxy: ${fmt(c.clv_peer_percentile,1)}/100 trên ${fmt(c.clv_peer_n)} khách đủ điều kiện cùng tháng.`);
   $("next-step").textContent = p.policy.next_step;
   $("policy-note").textContent = `${p.policy.basis} Chưa thể tính ROI. Policy ${p.policy.policy_version}.`;
-  $("persona").textContent = `${c.cluster || "Chưa có cụm C"} / ${c.persona_rule || "Chưa có nhãn P"}`;
+  $("persona").textContent = "Thông tin & nhóm hành vi";
   renderPersona(p);
   $("evidence-label").textContent = p.evidence.label;
   $("evidence-note").textContent = `${c.observed_pairs == null ? "Chưa có snapshot đầy đủ ở tháng này" : c.observed_pairs+" cặp tháng đầy đủ trong lịch sử"} · ${p.evidence.gap_months} tháng thiếu/vắng trong cửa sổ. ${p.evidence.meaning}`;
@@ -96,7 +81,7 @@ function render(p) {
     const monthCell=el("td"), monthButton=el("button",r.month,"month-link");monthButton.type="button";monthButton.setAttribute("aria-label",`Xem điểm tại ${r.month}`);monthButton.title=`Xem RFM, CLV, lifecycle tại ${r.month}`;
     if(r.known)monthButton.addEventListener("click",()=>{$("month").value=r.month;syncRange();loadProfile(p.customer_id,{focusMetrics:true});});else monthButton.disabled=true;
     if(r.month===p.as_of_month)monthButton.setAttribute("aria-current","date");monthCell.append(monthButton);
-    tr.append(monthCell, lifecycle, el("td",fmt(r.R)), el("td",fmt(r.F)), el("td",fmt(r.M,3)), el("td",fmt(r.n_products)), el("td",fmt(r.clv_1m,3)), el("td",`${r.cluster || "—"} / ${r.persona_rule || "—"}`));
+    tr.append(monthCell, lifecycle, el("td",fmt(r.R)), el("td",fmt(r.F)), el("td",fmt(r.M,3)), el("td",fmt(r.n_products)), el("td",fmt(r.clv_1m,3)), el("td",r.persona_rule || "—"));
     const changes = el("td",r.acquired == null ? "—" : `+${r.acquired.length} / −${r.removed.length}`);
     changes.title = r.acquired == null ? "Không có cặp tháng liên tiếp đầy đủ" : `Mở: ${r.acquired.map(x=>p.product_names[x]).join(", ") || "0"}; Rời: ${r.removed.map(x=>p.product_names[x]).join(", ") || "0"}`;
     tr.append(changes); return tr;
