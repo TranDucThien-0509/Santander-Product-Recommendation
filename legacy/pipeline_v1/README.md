@@ -2,8 +2,8 @@
 
 [← Trang chính](../../README.md) · [Pipeline v2](../../experiments/event_pipeline_v2/README.md)
 
-Giữ lại phiên bản pipeline ban đầu để tham khảo và chạy lại sample. Pipeline v2
-được phát triển riêng; các số đo dưới đây chỉ thuộc v1.
+Giữ lại phiên bản pipeline ban đầu để tham khảo và chạy lại sample. Dashboard Customer 360
+và pipeline đang phát triển nằm trong v2; các số đo dưới đây chỉ thuộc v1.
 
 **Thư mục chạy:** mọi lệnh trong README này và `GCP_DEPLOYMENT.md` được chạy từ
 `legacy/pipeline_v1/` (từ root: `cd legacy/pipeline_v1`). Python config tự tìm sample

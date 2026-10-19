@@ -1,5 +1,10 @@
 # Bước 2 — Benchmark tổng hợp từ output đã lưu
 
+Đánh giá được tính lại từ cùng nguồn v2/full-data có ở
+[báo cáo thống nhất](../../../experiments/event_pipeline_v2/docs/UNIFIED_EVALUATION.md).
+Các bảng bên dưới vẫn giữ provenance của nghiên cứu notebook gốc, không thay
+thế hoặc gộp với bảng full-data mới.
+
 Số liệu trích từ HTML tables trong notebook upload, ở độ chính xác hiển thị, không tính lại metric từ customer-level predictions. Provenance từng bảng: [evidence manifest](../reports/evidence_manifest.json). Tất cả tháng đều là **tháng nguồn**; nhãn acquisition t+1 nằm ở tháng sau.
 
 ## RFM — HasEvent, cặp source Dec2015–Apr2016

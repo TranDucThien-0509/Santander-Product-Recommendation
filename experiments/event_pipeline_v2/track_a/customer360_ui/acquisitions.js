@@ -1,0 +1,124 @@
+"use strict";
+let activeView="profile", eventMonth=null, acquisitionSummary=null, acquisitionSummaryPromise=null;
+let acquisitionVersion=0, acquisitionPage=1, acquisitionPages=1, acquisitionFilterTimer;
+
+function updateDashboardLocation() {
+  if(!metadata)return;
+  const args=new URLSearchParams({month:$("month").value,window:selectedWindow(),preset:$("window").value});
+  if(customerId!=null)args.set("id",String(customerId));
+  if(eventMonth)args.set("event_month",eventMonth);
+  if(activeView==="acquisitions")args.set("view","acquisitions");
+  history.replaceState(null,"",`/?${args}`);
+}
+function showDashboardView(view) {
+  activeView=view;
+  $("customer-view").hidden=view!=="profile";$("acquisition-view").hidden=view!=="acquisitions";
+  for(const [id,selected] of [["tab-profile",view==="profile"],["tab-acquisitions",view==="acquisitions"]]){$(id).setAttribute("aria-selected",String(selected));$(id).tabIndex=selected?0:-1;}
+  $("aside-view-label").textContent=view==="profile"?"◎  Hồ sơ khách hàng":"↗  Mở sản phẩm theo tháng";
+  if($("products-dialog").open)$("products-dialog").close();
+  $("back-to-acquisitions").hidden=!eventMonth;
+  if(eventMonth)$("back-to-acquisitions").textContent=`← Trở lại lượt mở tháng ${eventMonth}`;
+}
+function acquisitionStatus(text,error=false){$("acquisition-status").textContent=text;$("acquisition-status").setAttribute("role",error?"alert":"status");}
+function renderMonthIndex() {
+  $("acquisition-months").replaceChildren(...acquisitionSummary.months.slice().reverse().map(s=>{
+    const row=el("tr"),cell=el("td"),button=el("button",s.month,"month-link");button.type="button";button.setAttribute("aria-label",`Xem lượt mở tháng ${s.month}`);button.setAttribute("aria-pressed",String(s.month===eventMonth));button.addEventListener("click",()=>loadAcquisitions(s.month,1,true));cell.append(button);row.append(cell,el("td",fmt(s.customers_opened)),el("td",fmt(s.product_openings)));return row;
+  }));
+}
+async function ensureAcquisitionSummary() {
+  if(!acquisitionSummary){
+    if(!acquisitionSummaryPromise)acquisitionSummaryPromise=api("/api/acquisitions/summary").catch(e=>{acquisitionSummaryPromise=null;throw e;});
+    acquisitionSummary=await acquisitionSummaryPromise;
+  }
+  renderMonthIndex();
+}
+async function openEventCustomer(id,month) {
+  showDashboardView("profile");$("month").value=month;$("window").value="24";syncRange();
+  await loadProfile(id);
+  if(profile && profile.customer_id===id && profile.as_of_month===month)$("profile").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderEventContext(p) {
+  const panel=$("event-context");panel.hidden=p.as_of_month!==eventMonth;
+  if(panel.hidden)return;
+  const current=p.current, previous=p.timeline[p.timeline.length-2];
+  $("event-context-title").textContent=`Trước và tại tháng ${p.as_of_month}`;
+  const body=$("event-snapshot-body");body.replaceChildren();
+  for(const [label,snapshot] of [["Tháng trước",previous],["Tháng đang chọn",current]]){
+    const row=el("tr");const name=el("th",label);name.scope="row";row.append(name);
+    if(snapshot)row.append(...[snapshot.month,snapshot.lifecycle,fmt(snapshot.n_products),fmt(snapshot.R),fmt(snapshot.F),fmt(snapshot.M,3),fmt(snapshot.clv_1m,3)].map(value=>el("td",value)));
+    else {const cell=el("td",metadata.months.indexOf(p.as_of_month)===0?"Chưa có snapshot tháng trước trong bộ dữ liệu.":"Khoảng xem hiện tại chưa gồm tháng trước; chọn “Xem toàn bộ diễn biến” bên dưới.");cell.colSpan=7;row.append(cell);}
+    body.append(row);
+  }
+  const changes=$("event-product-changes");changes.replaceChildren();
+  for(const [label,codes] of [["Sản phẩm mở thêm",current.acquired],["Sản phẩm rời",current.removed]]){
+    const block=el("div");block.append(el("h3",label));
+    if(codes==null)block.append(el("p","Chưa xác định được vì thiếu cặp snapshot tháng liên tiếp đầy đủ.","small"));
+    else if(!codes.length)block.append(el("p","Không ghi nhận.","small"));
+    else {const chips=el("div",null,"event-products");for(const code of codes)chips.append(el("span",p.product_names[code]||code,"chip"));block.append(chips);}
+    changes.append(block);
+  }
+  $("event-lifecycle-note").textContent=previous ? (previous.lifecycle===current.lifecycle?`Lifecycle vẫn là ${current.lifecycle}.${current.acquired?.length?" Mở thêm sản phẩm không bắt buộc làm đổi lifecycle.":""}`:`Lifecycle: ${previous.lifecycle} → ${current.lifecycle}. Đây là hai trạng thái được ghi nhận ở hai tháng.`) : "Chưa có tháng trước trong khoảng xem để đối chiếu lifecycle.";
+  renderPreviousAffinity(p.previous_affinity);
+}
+function renderPreviousAffinity(context) {
+  const host=$("event-previous-affinity");host.replaceChildren();
+  if(!context){host.append(el("p","Tải lại trang để cập nhật affinity tháng trước.","small"));return;}
+  host.append(el("h3",`Affinity tháng trước · ${context.as_of_month}`),el("p",`Top 5 sản phẩm tại ${context.as_of_month} → đối chiếu lượt mở ghi nhận trong ${context.target_month}.`,"small"));
+  if(!context.available){host.append(el("p",`Chưa hiển thị đề xuất: ${context.reason}`,"small"));return;}
+  const scroll=el("div",null,"table-scroll"),table=el("table",null,"previous-affinity-table"),head=el("thead"),headRow=el("tr"),body=el("tbody");
+  table.setAttribute("aria-label",`Affinity tháng ${context.as_of_month} đối chiếu tháng ${context.target_month}`);
+  for(const label of ["Hạng","Sản phẩm chưa sở hữu ở tháng trước","Điểm affinity",`Quan sát ${context.target_month}`])headRow.append(el("th",label));
+  head.append(headRow);
+  context.recommendations.forEach((r,i)=>{const row=el("tr"),outcome=el("td"),label=r.acquired_in_target===true?"Có ghi nhận mở":r.acquired_in_target===false?"Không ghi nhận mở":"Chưa đối chiếu được";outcome.append(el("span",label,r.acquired_in_target===true?"affinity-outcome matched":"affinity-outcome"));row.append(el("td",String(i+1)),el("td",r.name),el("td",fmt(r.score,6)),outcome);body.append(row);});
+  table.append(head,body);scroll.append(table);host.append(scroll,el("p",context.reason,"small"));
+  if(!context.outcomes_available)host.append(el("p","Thiếu cặp snapshot đầy đủ để đối chiếu; không xem dữ liệu thiếu là không mở sản phẩm.","small"));
+}
+async function loadAcquisitions(month,page=1,focus=false) {
+  if(!metadata.months.includes(month))return;
+  if(month!==eventMonth)$("acquisition-query").value="";
+  eventMonth=month;const version=++acquisitionVersion,query=$("acquisition-query").value.trim();
+  if(query && !/^\d{1,12}$/.test(query)){acquisitionStatus("Mã khách lọc phải là chữ số, tối đa 12 ký tự.",true);return;}
+  $("acquisition-month-title").textContent=`Tháng ${month}`;
+  $("acquisition-customers").replaceChildren();$("acquisition-metrics").replaceChildren();$("acquisition-page").textContent="";$("acquisition-note").textContent="";
+  $("acquisition-prev").disabled=true;$("acquisition-next").disabled=true;acquisitionStatus(`Đang đọc lượt mở tháng ${month}…`);
+  if(acquisitionSummary)renderMonthIndex();
+  try {
+    const result=await api(`/api/acquisitions?${new URLSearchParams({month,q:query,page,page_size:25})}`);
+    if(version!==acquisitionVersion)return;
+    const s=result.summary;acquisitionPage=result.page;acquisitionPages=result.total_pages;
+    $("acquisition-metrics").replaceChildren(metric("KHÁCH CÓ MỞ THÊM",fmt(s.customers_opened),"Toàn bộ tháng đã chọn"),metric("LƯỢT MỞ SẢN PHẨM",fmt(s.product_openings),"Một khách có thể mở nhiều SP"),metric("KHÁCH SO SÁNH ĐƯỢC",fmt(s.eligible_pairs),`Cặp snapshot ${s.previous_month} → ${s.month}`));
+    $("acquisition-note").textContent=`${s.note} ${s.available ? "Có "+fmt(s.unverified_customers)+" khách trong snapshot tháng này chưa đủ cặp dữ liệu để xác định lượt mở." : ""}`;
+    const rows=result.rows.map(r=>{const row=el("tr"),customer=el("td"),button=el("button",`#${r.customer_id} ↗`,"month-link");button.type="button";button.setAttribute("aria-label",`Mở hồ sơ khách ${r.customer_id} tại ${month}`);button.addEventListener("click",()=>openEventCustomer(r.customer_id,month));customer.append(button);const products=el("td"),chips=el("div",null,"event-products");for(const p of r.products){const chip=el("span",p.name,"chip");chip.title=p.code;chips.append(chip);}products.append(chips);row.append(customer,el("td",fmt(r.opening_count)),products);return row;});
+    if(!rows.length){const row=el("tr"),cell=el("td",!s.available?s.note:query?"Không có khách khớp mã lọc trong tháng này.":"Không ghi nhận lượt mở từ các cặp snapshot đầy đủ.","event-empty");cell.colSpan=3;row.append(cell);rows.push(row);}
+    $("acquisition-customers").replaceChildren(...rows);
+    const start=result.total_customers?(result.page-1)*result.page_size+1:0,end=Math.min(result.page*result.page_size,result.total_customers);
+    $("acquisition-page").textContent=`${fmt(start)}–${fmt(end)} / ${fmt(result.total_customers)} khách${query?" khớp mã lọc":""} · Trang ${result.page}/${result.total_pages}`;
+    $("acquisition-prev").disabled=result.page<=1;$("acquisition-next").disabled=result.page>=result.total_pages;
+    acquisitionStatus(`Đã tải tháng ${month}. Bấm mã khách để xem hồ sơ tại tháng này.`);updateDashboardLocation();
+    if(focus)$("acquisition-detail").scrollIntoView({behavior:"smooth",block:"start"});
+  } catch(e){if(version===acquisitionVersion)acquisitionStatus(e.message,true);}
+}
+async function activateDashboardView(view) {
+  showDashboardView(view);
+  if(view==="acquisitions"){
+    try{await ensureAcquisitionSummary();await loadAcquisitions(eventMonth || $("month").value || metadata.latest_month);}
+    catch(e){acquisitionStatus("Không tải được dữ liệu lượt mở: "+e.message,true);}
+  }else if(!profile){await loadProfile(customerId || metadata.examples[0]?.customer_id);}
+  updateDashboardLocation();
+}
+async function initializeAcquisitionView(args) {
+  const tabs=[$("tab-profile"),$("tab-acquisitions")];tabs.forEach((tab,i)=>{tab.disabled=false;tab.addEventListener("click",()=>activateDashboardView(i?"acquisitions":"profile"));tab.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"){e.preventDefault();tabs[1-i].focus();tabs[1-i].click();}});});
+  $("back-to-acquisitions").addEventListener("click",()=>activateDashboardView("acquisitions"));
+  $("show-event-history").addEventListener("click",async()=>{const id=customerId,month=$("month").value;$("window").value="24";syncRange();await loadProfile(id);if(profile && profile.customer_id===id && profile.as_of_month===month)$("customer-history").scrollIntoView({behavior:"smooth",block:"start"});});
+  $("choose-another-month").addEventListener("click",()=>$("month-index").scrollIntoView({behavior:"smooth",block:"start"}));
+  $("acquisition-filter").addEventListener("submit",e=>{e.preventDefault();clearTimeout(acquisitionFilterTimer);loadAcquisitions(eventMonth,1);});
+  $("acquisition-query").addEventListener("input",()=>{clearTimeout(acquisitionFilterTimer);acquisitionFilterTimer=setTimeout(()=>loadAcquisitions(eventMonth,1),250);});
+  $("acquisition-prev").addEventListener("click",()=>{if(acquisitionPage>1)loadAcquisitions(eventMonth,acquisitionPage-1);});
+  $("acquisition-next").addEventListener("click",()=>{if(acquisitionPage<acquisitionPages)loadAcquisitions(eventMonth,acquisitionPage+1);});
+  if(metadata.months.includes(args.get("event_month")))eventMonth=args.get("event_month");
+  if(args.get("view")==="acquisitions"){
+    if(/^\d{1,12}$/.test(args.get("id")||"")){customerId=Number(args.get("id"));$("customer").value=String(customerId);}
+    await activateDashboardView("acquisitions");return true;
+  }
+  showDashboardView("profile");return false;
+}

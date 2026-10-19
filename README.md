@@ -2,6 +2,15 @@
 
 ## Track A — Customer Segmentation / DS
 
+**Customer 360:** đã có [dashboard hồ sơ khách hàng theo tháng](experiments/event_pipeline_v2/docs/CUSTOMER_360.md)
+chạy local: RFM, lifecycle, CLV-proxy 1m, affinity, thông tin khách, nhóm hành vi P và diễn giải mức
+ưu tiên chăm sóc. Chọn mã khách, khoảng từ tháng → đến tháng hoặc 6/12/toàn bộ
+lịch sử, xem thông tin cá nhân và giải thích nhóm hành vi P theo hai cột, tải JSON. Bản hiện
+hỗ trợ toàn bộ khách từ completed full v2 run qua store trên ổ đĩa; vẫn có chế
+độ sample 10k. Mức ưu tiên là heuristic thử nghiệm, chưa phải kết luận ROI.
+Tab **Mở sản phẩm theo tháng** cho xem lượt mở và khách có sự kiện theo tháng;
+bấm mã khách để chuyển thẳng sang hồ sơ tại tháng ghi nhận đó.
+
 Bộ nghiên cứu Track A nằm tại [`research/track_a/`](research/track_a/README.md):
 notebook RFM quantile/KMeans/rule, lifecycle, CLV BG/NBD + Gamma-Gamma/ML,
 Apriori/item2vec, 6 persona card và package bàn giao. Xem
@@ -44,6 +53,9 @@ experiments/event_pipeline_v2/  Pipeline v2, Customer 360 và đánh giá thốn
 research/track_a/              Notebook, package bàn giao và bằng chứng Track A
 legacy/pipeline_v1/            Pipeline sáu stage cùng cấu hình triển khai cũ
 ```
+
+[Báo cáo đánh giá thống nhất Track A trên full data](research/track_a/reports/unified_v2_full_20261019/README.md)
+đặt cạnh các benchmark nghiên cứu và sample, có ghi rõ phạm vi từng nguồn.
 
 Cài dependencies v1 từ `legacy/pipeline_v1/requirements.txt`; v2 dùng bộ riêng
 trong thư mục của nó. Các notebook EDA và sample tháng 9 đều nằm trong mục legacy.

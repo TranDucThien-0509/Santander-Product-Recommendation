@@ -1,5 +1,10 @@
 # GCP execution evidence
 
+Đánh giá riêng RFM/lifecycle/CLV/persona/affinity trên cùng cohort full-data,
+bao gồm AP/AUC/Lift10/Capture10 và độ ổn định theo tháng, nằm trong
+[báo cáo thống nhất v2](UNIFIED_EVALUATION.md). Các bảng cloud-run bên dưới
+giữ nguyên số đo của ranker đã chạy trên GCP.
+
 Recorded on 18/10/2026 (Vietnam time).
 
 Image source: `9879bc55c1149095e4842cad6dcacdf38b9015a0`.
