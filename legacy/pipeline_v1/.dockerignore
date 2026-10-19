@@ -13,5 +13,6 @@ data/*
 
 # Không copy artifacts hay submission cũ vào container
 pipeline/artifacts/*
+artifacts/
 pipeline/sub.csv
 sub.csv

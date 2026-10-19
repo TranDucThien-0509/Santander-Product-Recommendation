@@ -4,7 +4,7 @@
 
 ## Trước lần bổ sung này
 
-Main có pipeline recommendation ở root, v2 event pipeline, sample/full Vertex benchmark và MLflow.
+Nguồn main lúc tích hợp có pipeline recommendation ở root; phiên bản này hiện được giữ tại `legacy/pipeline_v1/`. Repo còn có v2 event pipeline, sample/full Vertex benchmark và MLflow.
 Tuy nhiên **bộ nghiên cứu Track A có trên máy chưa nằm trong repo này**. Vì vậy code CLV 1m/Poisson,
 persona theo rule và smoothed affinity của v2 không tự chứng minh đã đáp ứng toàn bộ track.
 README root còn mô tả full/MLflow như việc chưa làm và dùng từ “giao dịch”; các chỗ gây nhầm đó đã được sửa/phân biệt phạm vi.

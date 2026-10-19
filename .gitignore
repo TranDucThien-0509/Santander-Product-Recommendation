@@ -17,10 +17,10 @@ data/raw/*
 !data/raw/train_sample_10k.csv
 !data/raw/test_sample_5k.csv
 artifacts/
-pipeline/artifacts/*
-!pipeline/artifacts/.gitkeep
+legacy/pipeline_v1/pipeline/artifacts/*
+!legacy/pipeline_v1/pipeline/artifacts/.gitkeep
 sub.csv
-pipeline/sub.csv
+legacy/pipeline_v1/pipeline/sub.csv
 *.parquet
 *.zip
 *.tar.gz

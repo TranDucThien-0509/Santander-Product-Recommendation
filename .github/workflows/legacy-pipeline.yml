@@ -1,11 +1,23 @@
-name: Santander ML Pipeline CI/CD
+name: Legacy pipeline v1
 
 on:
   push:
     branches: [ "**" ]
+    paths:
+      - 'legacy/pipeline_v1/**'
+      - 'data/raw/*_sample_*.csv'
+      - '.github/workflows/legacy-pipeline.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'legacy/pipeline_v1/**'
+      - 'data/raw/*_sample_*.csv'
+      - '.github/workflows/legacy-pipeline.yml'
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: legacy/pipeline_v1
 
 jobs:
   smoke-test:
@@ -20,6 +32,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+          cache-dependency-path: legacy/pipeline_v1/requirements.txt
 
       - name: Install dependencies
         run: |
@@ -29,7 +42,7 @@ jobs:
       - name: Run End-to-End Pipeline (Sample Mode)
         env:
           SANTANDER_SAMPLE_ROWS: "10000"
-          SANTANDER_INPUT_DIR: "data/raw"
+          SANTANDER_INPUT_DIR: "../../data/raw"
         run: |
           python pipeline/run_pipeline.py
 
@@ -41,11 +54,11 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pipeline-run-artifacts
+          name: legacy-pipeline-run-artifacts
           path: |
-            pipeline/artifacts/pipeline_run_log.jsonl
-            pipeline/artifacts/eval_metrics.json
-            sub.csv
+            legacy/pipeline_v1/pipeline/artifacts/pipeline_run_log.jsonl
+            legacy/pipeline_v1/pipeline/artifacts/eval_metrics.json
+            legacy/pipeline_v1/pipeline/sub.csv
           retention-days: 7
 
   build-docker:
@@ -62,12 +75,12 @@ jobs:
       - name: Build Docker image (Verify compilation)
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: legacy/pipeline_v1
+          file: legacy/pipeline_v1/Dockerfile
           push: false
           tags: santander-pipeline:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=legacy-v1
+          cache-to: type=gha,scope=legacy-v1,mode=max
 
   deploy-gcp:
     name: Push to GCP Artifact Registry (Main Only)
@@ -101,11 +114,11 @@ jobs:
       - name: Build and Push Docker image to GCP
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: legacy/pipeline_v1
+          file: legacy/pipeline_v1/Dockerfile
           push: true
           tags: |
             us-central1-docker.pkg.dev/santander-ds/santander-repo/santander-pipeline:latest
             us-central1-docker.pkg.dev/santander-ds/santander-repo/santander-pipeline:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=legacy-v1
+          cache-to: type=gha,scope=legacy-v1,mode=max
