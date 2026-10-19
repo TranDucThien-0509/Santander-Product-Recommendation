@@ -5,8 +5,8 @@ Chỉnh 1 chỗ ở đây thay vì rải rác trong từng script.
 import os
 
 _PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Local layout: <repo>/legacy/pipeline_v1/pipeline. Docker preserves this layout.
-_PROJECT_ROOT = os.path.abspath(os.path.join(_PIPELINE_DIR, "..", "..", ".."))
+# The archived pipeline and its sample data share the same legacy root.
+_PROJECT_ROOT = os.path.abspath(os.path.join(_PIPELINE_DIR, ".."))
 _LOCAL_RAW = os.path.join(_PROJECT_ROOT, "data", "raw")
 
 _DEFAULT_INPUT = _LOCAL_RAW if os.path.exists(_LOCAL_RAW) else "/kaggle/input/santander-product-recommendation/"

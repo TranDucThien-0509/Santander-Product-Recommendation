@@ -12,10 +12,14 @@ __pycache__/
 
 # Data & Pipeline Artifacts
 data/*
-!data/raw/
-data/raw/*
-!data/raw/train_sample_10k.csv
-!data/raw/test_sample_5k.csv
+
+# Only the two legacy CI samples are versioned; other raw/interim data stay local.
+legacy/pipeline_v1/data/*
+!legacy/pipeline_v1/data/raw/
+legacy/pipeline_v1/data/raw/*
+!legacy/pipeline_v1/data/raw/train_sample_10k.csv
+!legacy/pipeline_v1/data/raw/test_sample_5k.csv
+legacy/pipeline_v1/notebooks/data/
 artifacts/
 legacy/pipeline_v1/pipeline/artifacts/*
 !legacy/pipeline_v1/pipeline/artifacts/.gitkeep

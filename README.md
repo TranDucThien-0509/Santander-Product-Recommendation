@@ -38,7 +38,8 @@ chọn từ validation; xem [bằng chứng cloud và metric](experiments/event_
 ## Pipeline cũ — mục riêng
 
 Pipeline sáu stage được giữ tại **[legacy/pipeline_v1/](legacy/pipeline_v1/README.md)**,
-bao gồm mã nguồn, dependencies, Dockerfile, bốn cấu hình Vertex và hướng dẫn GCP.
+bao gồm mã nguồn, notebook EDA, helper ingest, data dictionary, hai CSV mẫu,
+dependencies, Dockerfile, bốn cấu hình Vertex và hướng dẫn GCP.
 Đây là phiên bản tham chiếu đã kiểm tra sample 10k dòng; kết quả full v2 được báo riêng.
 
 - [Chạy lại pipeline v1](legacy/pipeline_v1/README.md)
@@ -51,13 +52,10 @@ bao gồm mã nguồn, dependencies, Dockerfile, bốn cấu hình Vertex và h�
 experiments/event_pipeline_v2/  Pipeline v2, Customer 360 và đánh giá thống nhất
 research/track_a/              Notebook, package bàn giao và bằng chứng Track A
 legacy/pipeline_v1/            Pipeline sáu stage cùng cấu hình triển khai cũ
-notebooks/                    EDA và feature engineering ban đầu
-src/                          Helper ingest cho notebook EDA
-data/raw/                     Hai file sample phục vụ kiểm thử v1
 ```
 
 [Báo cáo đánh giá thống nhất Track A trên full data](research/track_a/reports/unified_v2_full_20261019/README.md)
 đặt cạnh các benchmark nghiên cứu và sample, có ghi rõ phạm vi từng nguồn.
 
-`requirements.txt` ở root là entrypoint tương thích cho môi trường notebook/v1.
-V2 dùng bộ dependencies riêng trong thư mục của nó.
+Cài dependencies v1 từ `legacy/pipeline_v1/requirements.txt`; v2 dùng bộ riêng
+trong thư mục của nó. Các notebook EDA và sample tháng 9 đều nằm trong mục legacy.

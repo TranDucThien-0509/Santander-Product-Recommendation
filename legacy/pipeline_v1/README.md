@@ -7,7 +7,7 @@ và pipeline đang phát triển nằm trong v2; các số đo dưới đây ch�
 
 **Thư mục chạy:** mọi lệnh trong README này và `GCP_DEPLOYMENT.md` được chạy từ
 `legacy/pipeline_v1/` (từ root: `cd legacy/pipeline_v1`). Python config tự tìm sample
-ở `data/raw/` của repo và mặc định ghi output vào `legacy/pipeline_v1/pipeline/`.
+ở `data/raw/` trong mục legacy và mặc định ghi output vào `legacy/pipeline_v1/pipeline/`.
 Có thể chỉ định `SANTANDER_INPUT_DIR` và `SANTANDER_WORK_DIR` bằng đường dẫn tuyệt đối.
 Các job YAML giữ image URI/tag lịch sử; cần build/push image mới và cập nhật URI nếu muốn chạy code hiện tại.
 
@@ -30,6 +30,10 @@ Deployment giữ điều kiện push vào `main`. Việc chuyển thư mục kh�
 ```text
 legacy/pipeline_v1/
 ├── pipeline/                Các script sáu stage, config, tracking và smoke test
+├── notebooks/               Bốn notebook EDA/cleaning/feature engineering ban đầu
+├── src/                     Helper ingest được notebook 01 sử dụng
+├── data/raw/                CSV train sample 10k và test sample 5k
+├── data_dictionary.md       Schema long-format từ notebook 04
 ├── Dockerfile
 ├── .dockerignore
 ├── requirements.txt
@@ -41,11 +45,12 @@ legacy/pipeline_v1/
 └── README.md
 ```
 
-Notebook EDA vẫn nằm tại [`../../notebooks/`](../../notebooks/), dùng helper
-[`../../src/`](../../src/). Sample vẫn nằm tại [`../../data/raw/`](../../data/raw/).
+Notebook EDA nằm tại [`notebooks/`](notebooks/), dùng helper [`src/`](src/).
+Sample nằm tại [`data/raw/`](data/raw/). [Data dictionary](data_dictionary.md)
+mô tả output long-format của notebook 04, khác schema của Track A v2.
 Workflow hoạt động tại [`.github/workflows/legacy-pipeline.yml`](../../.github/workflows/legacy-pipeline.yml).
 
-## 3. Notebook nghiên cứu (`../../notebooks/`)
+## 3. Notebook nghiên cứu (`notebooks/`)
 
 | Notebook | Nội dung |
 |---|---|
@@ -55,6 +60,10 @@ Workflow hoạt động tại [`.github/workflows/legacy-pipeline.yml`](../../.g
 | `04_feature_engineering` | Thử nghiệm đặc trưng `days`, cờ thay đổi trạng thái, lag features 5 tháng. |
 
 ---
+
+Các notebook giữ nguyên source nghiên cứu. Chạy từ `notebooks/` để giữ cách resolve
+`../src` và các đường dẫn `data/interim` ban đầu; notebook 01 cần raw CSV/GCS,
+không mặc định dùng hai CSV sample của CI.
 
 ## 4. Pipeline production (`pipeline/`)
 

@@ -5,13 +5,11 @@ on:
     branches: [ "**" ]
     paths:
       - 'legacy/pipeline_v1/**'
-      - 'data/raw/*_sample_*.csv'
       - '.github/workflows/legacy-pipeline.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'legacy/pipeline_v1/**'
-      - 'data/raw/*_sample_*.csv'
       - '.github/workflows/legacy-pipeline.yml'
   workflow_dispatch:
 
@@ -42,7 +40,7 @@ jobs:
       - name: Run End-to-End Pipeline (Sample Mode)
         env:
           SANTANDER_SAMPLE_ROWS: "10000"
-          SANTANDER_INPUT_DIR: "../../data/raw"
+          SANTANDER_INPUT_DIR: "data/raw"
         run: |
           python pipeline/run_pipeline.py
 

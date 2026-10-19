@@ -1,3 +1,0 @@
-# Compatibility entrypoint for the original notebooks and legacy v1.
-# Pipeline v2 has its own requirements in experiments/event_pipeline_v2/.
--r legacy/pipeline_v1/requirements.txt
