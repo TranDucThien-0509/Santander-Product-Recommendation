@@ -13,6 +13,7 @@ RFM-proxy, lifecycle, acquisition-proxy, affinity và sáu persona từ Santande
 
 ## Xem kết quả
 
+- [Đánh giá thống nhất v2 trên full data: cùng cohort, nhãn, Lift/Capture/MAP/Recall](../../experiments/event_pipeline_v2/docs/UNIFIED_EVALUATION.md)
 - [Chốt phương pháp](docs/01_decisions.md)
 - [Benchmark và cách đọc](docs/02_benchmarks.md)
 - [Sáu persona card từ output thực tế](docs/04_persona_cards.md)

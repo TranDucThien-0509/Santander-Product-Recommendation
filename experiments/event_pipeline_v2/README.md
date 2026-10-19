@@ -157,6 +157,14 @@ Workflow v2 nằm tại root `.github/workflows/event-pipeline-v2.yml`, cài req
 
 ## 9. Track A customer analytics
 
+### Đánh giá thống nhất RFM / lifecycle / CLV / affinity
+
+`python -m track_a.unified_evaluation --help` tạo một báo cáo dùng cùng cohort,
+nhãn tháng kế tiếp và cách xử lý ties cho AP/AUC/Lift10/Capture10, cùng bảng
+MAP@7/Recall@7 cho sản phẩm. Có acquisition rate/CI từng nhóm, ổn định thứ hạng
+rate và membership theo tháng. Xem [giao thức và báo cáo full](docs/UNIFIED_EVALUATION.md).
+Kết quả này được tính từ nguồn v2; benchmark notebook cũ vẫn giữ provenance riêng.
+
 Phần bổ sung nằm trong package `track_a/`, dependencies riêng `requirements-track-a.txt`. CLI `python -m track_a.run --help` chạy EDA/event export, RFM tiering/stability, CLV 6m BG/NBD + Gamma-Gamma/gradient boosting + SHAP, persona clustering và affinity audit từ completed v2 run. Không đổi feature/version/model của ranker đang dùng.
 
 ### Customer 360 — xem từng khách theo tháng
