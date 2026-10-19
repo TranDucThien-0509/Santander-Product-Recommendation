@@ -1,5 +1,8 @@
 # Báo Cáo & Hướng Dẫn MLOps: Triển Khai Pipeline Santander Lên GCP
 
+> **Phạm vi: legacy v1.** Chạy lệnh từ `legacy/pipeline_v1/` (từ root: `cd legacy/pipeline_v1`).
+> Image/job ID và số đo bên dưới là lịch sử của v1. YAML giữ tag cũ; build/push image mới và cập nhật URI để chạy mã nguồn hiện tại.
+
 Tài liệu này ghi nhận toàn bộ kiến trúc, cấu hình hạ tầng, quy trình đóng gói container và kết quả thực nghiệm **MLOps** của dự án **Santander Product Recommendation** trên **Google Cloud Platform (GCP)**.
 
 ---
@@ -91,7 +94,7 @@ gcloud projects get-iam-policy santander-ds --flatten="bindings[].members" --for
 ### B. Dockerfile tối ưu
 ```dockerfile
 FROM python:3.11-slim
-WORKDIR /app
+WORKDIR /app/legacy/pipeline_v1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -101,9 +104,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY pipeline/ ./pipeline/
-COPY src/ ./src/
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/legacy/pipeline_v1
 CMD ["python", "pipeline/run_pipeline.py"]
 ```
 

@@ -148,7 +148,7 @@ Test tự tạo dữ liệu giả; không tải hay commit dữ liệu Kaggle. C
 
 Xem [hướng dẫn GCP](docs/GCP.md), `Dockerfile`, `configs/vertex_job.yaml` và [trạng thái kiểm chứng](docs/VALIDATION.md). Raw ingest đọc theo chunk nhưng bước tổng hợp/feature vẫn nạp một tháng vào RAM; không phải pipeline hoàn toàn out-of-core. Giới hạn event rows và CLV rows có config; scoring encoding chia batch 20.000 dòng.
 
-Workflow v2 nằm tại root `.github/workflows/event-pipeline-v2.yml`, cài requirements và chạy synthetic tests từ thư mục v2, sau đó build Docker và kiểm tra import trong container. Workflow CI/CD cũ được giữ riêng. Không commit raw data, cache, model pickle hoặc credentials.
+Workflow v2 nằm tại root `.github/workflows/event-pipeline-v2.yml`, cài requirements và chạy synthetic tests từ thư mục v2, sau đó build Docker và kiểm tra import trong container. Workflow CI/CD v1 được giữ riêng tại [legacy-pipeline.yml](../../.github/workflows/legacy-pipeline.yml), với code và cấu hình tại [legacy/pipeline_v1](../../legacy/pipeline_v1/README.md). Không commit raw data, cache, model pickle hoặc credentials.
 
 
 ## 8. MLflow
