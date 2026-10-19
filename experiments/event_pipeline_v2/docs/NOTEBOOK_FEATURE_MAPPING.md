@@ -2,7 +2,7 @@
 
 Integration base: `Santander-Product-Recommendation/main` at
 `5e791bda2958fa395f69d342aeaa83a28ad78bcb`, fetched on 18/10/2026 (Vietnam time).
-The original root `pipeline/`, Dockerfile, dependencies and CI are preserved.
+The original six-stage pipeline, Dockerfile and dependencies are preserved in [`legacy/pipeline_v1/`](../../../legacy/pipeline_v1/README.md); its CI is `.github/workflows/legacy-pipeline.yml`.
 Notebook references below are the source-only files in
 [`Santander-Recommendation` at `d6ab82d`](https://github.com/TranDucThien-0509/Santander-Recommendation/tree/d6ab82d9f0362c0e2c8cae72d054848a4c8217a0/notebooks).
 Hashes identify the exact local files inspected, including their metadata.

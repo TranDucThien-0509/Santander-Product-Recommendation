@@ -4,7 +4,7 @@
 
 ## Trước lần bổ sung này
 
-Main có pipeline recommendation ở root, v2 event pipeline, sample/full Vertex benchmark và MLflow.
+Nguồn main lúc tích hợp có pipeline recommendation ở root; phiên bản này hiện được giữ tại `legacy/pipeline_v1/`. Repo còn có v2 event pipeline, sample/full Vertex benchmark và MLflow.
 Tuy nhiên **bộ nghiên cứu Track A có trên máy chưa nằm trong repo này**. Vì vậy code CLV 1m/Poisson,
 persona theo rule và smoothed affinity của v2 không tự chứng minh đã đáp ứng toàn bộ track.
 README root còn mô tả full/MLflow như việc chưa làm và dùng từ “giao dịch”; các chỗ gây nhầm đó đã được sửa/phân biệt phạm vi.
@@ -13,7 +13,7 @@ README root còn mô tả full/MLflow như việc chưa làm và dùng từ “g
 
 | Yêu cầu | Trạng thái và bằng chứng |
 |---|---|
-| Môi trường/Git/Python, tái chạy | requirements-track-a.txt, requirements-demo.txt; [REPRODUCE.md](REPRODUCE.md), 3 workflow độc lập cho root/v2/Track A |
+| Môi trường/Git/Python, tái chạy | requirements-track-a.txt, requirements-demo.txt; [REPRODUCE.md](REPRODUCE.md), 3 workflow độc lập cho legacy v1/v2/Track A |
 | Ingest/clean file lớn, chunk/Parquet | pipeline v2 ingest có chunk, typed fields, cache manifest, monthly partitions; full 13.647.309 snapshot đã chạy Vertex theo CLOUD_RUNS.md. Bước tổng hợp mỗi tháng vẫn dùng RAM, không tự nhận hoàn toàn out-of-core |
 | Raw missing/cardinality/product distribution | [raw_column_audit.csv](../reports/sample_10k/raw_column_audit.csv) có renta/age/cod_prov/indrel_1mes và categorical; portfolio_distribution.csv, monthly_snapshots.csv |
 | EDA sâu theo thời gian/segment/channel/tenure | [segment_product_trend.csv](../reports/sample_10k/segment_product_trend.csv), panel_presence.csv và panel_presence_by_segment.csv; không gọi absence là churn ngân hàng đã xác nhận |

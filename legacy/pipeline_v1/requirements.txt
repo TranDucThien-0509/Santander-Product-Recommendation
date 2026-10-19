@@ -17,4 +17,3 @@ google-cloud-storage>=2.18.0
 
 # Jupyter kernel
 ipykernel>=6.29.0
-

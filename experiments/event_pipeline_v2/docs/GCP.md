@@ -51,7 +51,7 @@ Lệnh trên tạo job chạy thực tế. Theo dõi log để lấy dòng `COMP
 
 ## Trình tự sample → full
 
-1. Chạy `pipeline.sample` trên raw để lấy 10.000 customer ID cố định, giữ mọi tháng; upload sample và manifest vào prefix raw riêng. Không dùng sample 10k dòng cũ của pipeline root vì thiếu các tháng test.
+1. Chạy `pipeline.sample` trên raw để lấy 10.000 customer ID cố định, giữ mọi tháng; upload sample và manifest vào prefix raw riêng. Không dùng sample 10k dòng cũ của pipeline v1 trong `legacy/pipeline_v1/` vì thiếu các tháng test.
 2. Chạy sample với cả bảy ablation variants; kiểm tra state `JOB_STATE_SUCCEEDED`, `completed.json`, cohort, forecast audit và measured RSS.
 3. Khóa flags theo validation, không dùng test để chọn. Thử nghiệm local chọn baseline+CLV; mọi điểm test vẫn từ evaluation_model trước refit.
 4. Tạo config full từ cấu hình đã khóa, đổi raw path về full CSV, work_dir thành prefix full mới, `ablation=false`. Giữ seed, split, sampling caps và model parameters; không cần chạy lại bảy ablations trên full ngay lần đầu.

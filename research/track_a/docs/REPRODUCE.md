@@ -77,4 +77,4 @@ python -m pip install -e research/track_a
 python -m unittest discover -s research/track_a/tests -v
 ```
 
-CI `track-a.yml` cài dependencies riêng và kiểm tra source wrap + data contracts. Pipeline/Docker/requirements cũ ở root giữ riêng. Các synthetic tests không chứng minh metric full Santander.
+CI `track-a.yml` cài dependencies riêng và kiểm tra source wrap + data contracts. Pipeline/Docker/requirements cùng notebook và sample cũ được giữ riêng trong `legacy/pipeline_v1/`. Các synthetic tests không chứng minh metric full Santander.

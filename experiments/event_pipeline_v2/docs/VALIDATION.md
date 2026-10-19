@@ -91,7 +91,7 @@ The immutable cloud image digest fixes the runtime used by both cloud jobs.
 
 ## Plan completion
 
-- [x] Isolated branch/scaffold from the fetched main SHA; existing root pipeline preserved.
+- [x] Isolated branch/scaffold from the fetched main SHA; original pipeline preserved (now organized under `legacy/pipeline_v1/`).
 - [x] Default config tracked; local configs/data/artifacts ignored and excluded from image.
 - [x] M scale/fallback and persona eligibility/provenance audited; lifecycle states exported.
 - [x] CLV/affinity separately versioned, fitted per origin with availability audits.

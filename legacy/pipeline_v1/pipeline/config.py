@@ -5,6 +5,7 @@ Chỉnh 1 chỗ ở đây thay vì rải rác trong từng script.
 import os
 
 _PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+# The archived pipeline and its sample data share the same legacy root.
 _PROJECT_ROOT = os.path.abspath(os.path.join(_PIPELINE_DIR, ".."))
 _LOCAL_RAW = os.path.join(_PROJECT_ROOT, "data", "raw")
 

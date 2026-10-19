@@ -1,0 +1,204 @@
+# Legacy — pipeline v1 sáu stage
+
+[← Trang chính](../../README.md) · [Pipeline v2](../../experiments/event_pipeline_v2/README.md)
+
+Giữ lại phiên bản pipeline ban đầu để tham khảo và chạy lại sample. Pipeline v2
+được phát triển riêng; các số đo dưới đây chỉ thuộc v1.
+
+**Thư mục chạy:** mọi lệnh trong README này và `GCP_DEPLOYMENT.md` được chạy từ
+`legacy/pipeline_v1/` (từ root: `cd legacy/pipeline_v1`). Python config tự tìm sample
+ở `data/raw/` trong mục legacy và mặc định ghi output vào `legacy/pipeline_v1/pipeline/`.
+Có thể chỉ định `SANTANDER_INPUT_DIR` và `SANTANDER_WORK_DIR` bằng đường dẫn tuyệt đối.
+Các job YAML giữ image URI/tag lịch sử; cần build/push image mới và cập nhật URI nếu muốn chạy code hiện tại.
+
+CI chỉ tự chạy khi thay đổi thư mục v1, sample hoặc chính workflow; vẫn có thể chạy thủ công.
+Deployment giữ điều kiện push vào `main`. Việc chuyển thư mục không thực thi cloud job.
+
+## 1. Bài toán
+
+- **Mục tiêu**: dựa trên snapshot sở hữu sản phẩm hàng tháng từ 01/2015 đến 05/2016 của ngân hàng Santander (Tây Ban Nha), dự đoán các **sản phẩm mới** mỗi khách hàng sẽ mở thêm vào tháng **06/2016**. Dataset không có transaction/invoice hoặc monetary thật.
+- **Dữ liệu**: hơn 13.6 triệu dòng (~2.3 GB CSV), 24 sản phẩm tài chính cùng thông tin nhân khẩu học và hành vi khách hàng.
+- **Thách thức**:
+  1. Dữ liệu lớn, dễ tràn RAM trên máy cá nhân.
+  2. Chỉ được đề xuất sản phẩm khách **chưa sở hữu** ở tháng liền trước (masking).
+  3. Đánh giá bằng **MAP@7** (Mean Average Precision tại cut-off 7).
+
+---
+
+## 2. Cấu trúc pipeline v1
+
+```text
+legacy/pipeline_v1/
+├── pipeline/                Các script sáu stage, config, tracking và smoke test
+├── notebooks/               Bốn notebook EDA/cleaning/feature engineering ban đầu
+├── src/                     Helper ingest được notebook 01 sử dụng
+├── data/raw/                CSV train sample 10k và test sample 5k
+├── data_dictionary.md       Schema long-format từ notebook 04
+├── Dockerfile
+├── .dockerignore
+├── requirements.txt
+├── custom_job_test.yaml
+├── custom_job_1m.yaml
+├── custom_job_fe_train.yaml
+├── custom_job_full.yaml
+├── GCP_DEPLOYMENT.md
+└── README.md
+```
+
+Notebook EDA nằm tại [`notebooks/`](notebooks/), dùng helper [`src/`](src/).
+Sample nằm tại [`data/raw/`](data/raw/). [Data dictionary](data_dictionary.md)
+mô tả output long-format của notebook 04, khác schema của Track A v2.
+Workflow hoạt động tại [`.github/workflows/legacy-pipeline.yml`](../../.github/workflows/legacy-pipeline.yml).
+
+## 3. Notebook nghiên cứu (`notebooks/`)
+
+| Notebook | Nội dung |
+|---|---|
+| `01_eda_before_cleaning` | Thống kê missing values theo cột (`renta`, `age`, `antiguedad`, `indrel_1mes`...), độ mất cân bằng giữa 24 sản phẩm. |
+| `02_cleaning` | Điền khuyết `renta` theo trung vị từng tỉnh (`cod_prov`), xử lý tuổi bất thường, chuẩn hóa biến phân loại. |
+| `03_eda_after_cleaning` | Tương quan nhân khẩu học – sở hữu sản phẩm, xu hướng mua theo tháng (tính thời vụ). |
+| `04_feature_engineering` | Thử nghiệm đặc trưng `days`, cờ thay đổi trạng thái, lag features 5 tháng. |
+
+---
+
+Các notebook giữ nguyên source nghiên cứu. Chạy từ `notebooks/` để giữ cách resolve
+`../src` và các đường dẫn `data/interim` ban đầu; notebook 01 cần raw CSV/GCS,
+không mặc định dùng hai CSV sample của CI.
+
+## 4. Pipeline production (`pipeline/`)
+
+Các stage là script Python độc lập, trao đổi dữ liệu qua **Parquet** và **NumPy (`.npy`)** trong `artifacts/`, nên có thể chạy trọn gói hoặc chọn lọc từng stage (biến `SANTANDER_STAGES`).
+
+```
+[1 Ingest] → [2 Preprocess] → [3 Feature Eng.] → [4 Train] → [5 Predict] → [6 Evaluate]
+                                                                                 ↑
+                                                                        [Smoke Test]
+```
+
+| Stage | Vai trò |
+|---|---|
+| **1. Ingest** | Đọc CSV (local hoặc GCS), lưu sang Parquet để giảm dung lượng và tăng tốc I/O. |
+| **2. Preprocess** | Làm sạch, `LabelEncoder` cho biến phân loại (lưu `feature_label_encoders.pkl`). Trên sample 10k giảm 44.5% RAM. |
+| **3. Feature Engineering** | Đặc trưng `days = fecha_dato - fecha_alta`, cờ thay đổi hành vi (`segmento_changed`, `ind_actividad_cliente_changed`, `tiprel_1mes_changed`), nhãn "mua mới" tháng 06/2015 so với 05/2015, **tách 20% khách hàng làm tập validation** (`val_ground_truth.json`), lag features 5 tháng cho 24 sản phẩm. |
+| **4. Train** | XGBoost đa lớp (`multi:softprob`), lưu `xgb_model.pkl` và `target_encoder.pkl`. |
+| **5. Predict** | Dự đoán xác suất trên tập test, mask sản phẩm đã sở hữu ở snapshot 05/2016, lấy top-7, xuất `sub.csv` đúng định dạng Kaggle. |
+| **6. Evaluate** | MAP@7 offline trên tập validation (mask theo snapshot 05/2015, xếp hạng vector hóa, chỉ đọc các cột cần thiết từ Parquet). Ghi kết quả vào `pipeline_run_log.jsonl`. |
+
+### Metric đánh giá
+
+| Tên trong log | Ý nghĩa |
+|---|---|
+| `map7_valid` | MAP@7 chia cho **toàn bộ** khách validation (khách không mua mới có AP = 0) — cách tính để so sánh với điểm Kaggle. |
+| `map7_valid_buyers` | Chỉ tính trên khách có mua mới; số thường cao hơn nhiều, **không** so sánh với Kaggle. |
+| `kaggle_public` | Điểm Public Leaderboard, cập nhật sau khi nộp bài. |
+
+Mỗi run ghi kèm `run_id`, `image_tag`, `n_val_customers`, `n_val_buyers`, `n_empty_pred` và `cost_usd` (nếu có). Cập nhật điểm Kaggle mà không chạy lại pipeline:
+
+```powershell
+python pipeline/evaluate.py --update-kaggle 0.0295 --run-id latest
+```
+
+### Smoke test (`smoke_test.py`)
+
+1. **Schema & dtype**: đủ 22 cột nhân khẩu học, 24 cột sản phẩm, khóa (`ncodpers`, `fecha_dato`) không null.
+2. **Feature sạch**: `X_train`, `X_val` là ma trận 2D, 0 NaN, 0 Inf.
+3. **Định dạng `sub.csv`**: header chuẩn, đủ số khách test, không trùng `ncodpers`, mỗi khách đúng 7 sản phẩm không lặp.
+
+---
+
+## 5. Chạy trên Google Cloud Platform
+
+```
+[GitHub] → [GitHub Actions CI/CD] → [Artifact Registry: santander-pipeline]
+                                                   │
+                                                   ▼
+[Cloud Storage (gs://)] ◄── mount /gcs (FUSE) ──► [Vertex AI Custom Job — e2-standard-8]
+  raw/  train_ver2.csv, test_ver2.csv                 chạy container, xong tự hủy máy
+  <work_dir>/  artifacts, sub.csv, log
+```
+
+- **Storage**: bucket `gs://uit-thien-santander-ds/`, dữ liệu gốc ở `raw/`. Container đọc/ghi qua **Cloud Storage FUSE** (`/gcs/...`), kết quả tự đồng bộ về bucket.
+- **Image**: `us-central1-docker.pkg.dev/santander-ds/santander-repo/santander-pipeline` (base `python:3.11-slim`; `pip install` đặt trước `COPY` để tận dụng layer cache).
+- **Compute**: Vertex AI Custom Job trên `e2-standard-8` (8 vCPU, 32 GB RAM), chỉ tính tiền khi job chạy.
+- **CI/CD** (`legacy-pipeline.yml`): chạy pipeline trên sample 10k, chạy `smoke_test.py`, và khi có thay đổi liên quan được push vào `main` thì build + push image lên Artifact Registry.
+
+Chi tiết cấu hình IAM, lệnh vận hành và quy trình cập nhật image: xem [GCP_DEPLOYMENT.md](./GCP_DEPLOYMENT.md).
+
+---
+
+## 6. Hướng dẫn chạy
+
+### A. Local (sample 10k dòng)
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+
+$env:SANTANDER_SAMPLE_ROWS="10000"
+python pipeline/run_pipeline.py      # toàn bộ 6 stage
+python pipeline/smoke_test.py        # kiểm thử chất lượng
+python pipeline/evaluate.py          # chạy riêng stage evaluate
+```
+
+### B. Vertex AI
+
+```powershell
+gcloud auth login
+gcloud config set project santander-ds
+
+# Kiểm thử nhanh trên sample 10k
+gcloud ai custom-jobs create --region=us-central1 --project=santander-ds `
+    --display-name="santander-test-run" --config=custom_job_test.yaml
+
+# Theo dõi log
+gcloud ai custom-jobs stream-logs <JOB_ID> --region=us-central1 --project=santander-ds
+
+# Tải kết quả về máy (đường dẫn theo SANTANDER_WORK_DIR trong YAML)
+gcloud storage cp gs://uit-thien-santander-ds/test_run/sub.csv ./sub.csv
+```
+
+Job full (`custom_job_full.yaml`) ghi kết quả vào `full_run/`.
+
+---
+
+## 7. Kết quả & trạng thái
+
+### Đã xác thực (sample 10k dòng)
+
+| Môi trường | Kết quả |
+|---|---|
+| Local | Hoàn tất 6 stage, tổng ~5 giây (stage 1–5 đo được 5.1 giây). |
+| Docker local | Chạy đủ các stage, không lỗi dependency hoặc đường dẫn. |
+| Vertex AI Custom Job | `JOB_STATE_SUCCEEDED`, ~30 giây compute, máy tự hủy sau khi xong. |
+| Chạy chọn lọc stage trên Vertex | Feature engineering 3.4 giây + train 1.6 giây, không cần chạy lại toàn bộ. |
+
+### Kết quả mô hình
+
+| Chỉ số | Giá trị |
+|---|---|
+| Điểm Kaggle Public | Chưa có submission ID/link được lưu để xác minh; không dùng làm bằng chứng benchmark trong repo. |
+| `map7_valid` (full run) | _chưa có — chờ full run_ |
+| So sánh với baseline (sản phẩm phổ biến theo segment) | _chưa có_ |
+| Thời gian / RAM / chi phí full run trên Vertex | _chưa có_ |
+
+> Số MAP@7 của sample 10k chỉ tính trên vài chục khách hàng nên không đại diện; không dùng để đánh giá mô hình.
+
+---
+
+## 8. Hạn chế & hướng phát triển
+
+**Hạn chế pipeline sáu stage v1** (phân biệt với v2 và Track A ở trên)
+- **Chưa chạy full 13.6M dòng trên Vertex AI**; chưa có số đo thời gian, RAM, chi phí thật.
+- Mô hình huấn luyện trên nhãn tháng 06/2015 (cùng mùa với tháng test 06/2016), chưa dùng toàn bộ 2015–2016.
+- Tập validation là tách 20% khách hàng trong cùng tháng, không phải validation theo thời gian.
+- Image đang dùng tag `:latest`; kết quả lưu vào thư mục thử nghiệm/`full_run` chứ chưa version hóa theo `runs/<run_id>/`.
+- Tracking mới ở mức file JSONL; chưa có experiment tracking, model registry, serving hay monitoring.
+
+**Lộ trình**
+1. Chạy thử 1M dòng để đo scaling, rồi chạy full trên Vertex và ghi số liệu thật.
+2. Tag image theo git SHA, version hóa output theo `runs/<run_id>/`, đưa config ra file YAML.
+3. Experiment tracking (MLflow hoặc Vertex AI Experiments) và model registry.
+4. Serving bằng FastAPI trên Cloud Run, đo latency.
+5. Vertex AI Pipelines / Cloud Scheduler để retrain định kỳ; monitoring data drift (PSI).
+6. Service account riêng với quyền tối thiểu thay cho Compute default service account.
